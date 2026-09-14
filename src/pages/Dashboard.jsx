@@ -3,7 +3,12 @@ import {
     doc,
     getDoc,
     setDoc,
-    serverTimestamp
+    serverTimestamp,
+    collection,
+    query,
+    orderBy,
+    limit,
+    getDocs
 } from "firebase/firestore";
 
 import { onAuthStateChanged } from "firebase/auth";
@@ -15,13 +20,16 @@ import { Link } from "react-router-dom";
 function Dashboard() {
 
     const [userName, setUserName] = useState("");
+
     const [loading, setLoading] = useState(true);
 
-    // Water intake starts at 0
     const [waterCount, setWaterCount] = useState(0);
 
+    const [workout, setWorkout] = useState(null);
 
-    // Get today's date in the user's local timezone
+
+    // Get today's date
+
     const getTodayKey = () => {
 
         const now = new Date();
@@ -52,9 +60,7 @@ function Dashboard() {
 
                 try {
 
-                    
-                    // 1. Get user profile
-                    
+                    // Get user profile
 
                     const userDocRef = doc(
                         db,
@@ -77,12 +83,9 @@ function Dashboard() {
                     }
 
 
-                    
-                    // 2. Get today's water record
-                    
+                    // Get today's water intake
 
                     const today = getTodayKey();
-
 
                     const waterDocRef = doc(
                         db,
@@ -92,7 +95,6 @@ function Dashboard() {
                         today
                     );
 
-
                     const waterDoc = await getDoc(
                         waterDocRef
                     );
@@ -100,21 +102,13 @@ function Dashboard() {
 
                     if (waterDoc.exists()) {
 
-                        // Today's record already exists
-
                         const data = waterDoc.data();
-
 
                         setWaterCount(
                             data.glasses || 0
                         );
 
                     } else {
-
-                        
-                        // New day
-                        // Default = 0 glasses
-                        
 
                         await setDoc(
                             waterDocRef,
@@ -125,8 +119,43 @@ function Dashboard() {
                             }
                         );
 
-
                         setWaterCount(0);
+                    }
+
+
+                    // Get the latest workout plan
+
+                    const workoutPlansRef = collection(
+                        db,
+                        "users",
+                        user.uid,
+                        "workoutPlans"
+                    );
+
+
+                    const workoutQuery = query(
+                        workoutPlansRef,
+                        orderBy("addedAt", "desc"),
+                        limit(1)
+                    );
+
+
+                    const workoutSnapshot = await getDocs(
+                        workoutQuery
+                    );
+
+
+                    if (!workoutSnapshot.empty) {
+
+                        const workoutData =
+                            workoutSnapshot.docs[0].data();
+
+                        setWorkout(workoutData);
+
+                    } else {
+
+                        setWorkout(null);
+
                     }
 
                 } catch (error) {
@@ -135,7 +164,6 @@ function Dashboard() {
                         "Error loading dashboard:",
                         error
                     );
-
                 }
 
 
@@ -149,80 +177,78 @@ function Dashboard() {
     }, []);
 
 
-    
     // Add one glass of water
-    
 
-   const addWater = async () => {
+    const addWater = async () => {
 
-    if (waterCount >= 8) {
-        return;
-    }
+        if (waterCount >= 8) {
 
-    const user = auth.currentUser;
-
-    if (!user) {
-        alert("User is not logged in.");
-        return;
-    }
-
-    try {
-
-        const today = getTodayKey();
-
-        const waterDocRef = doc(
-            db,
-            "users",
-            user.uid,
-            "waterIntake",
-            today
-        );
-
-        const newWaterCount = waterCount + 1;
-
-        await setDoc(
-            waterDocRef,
-            {
-                glasses: newWaterCount,
-                date: today,
-                updatedAt: serverTimestamp()
-            },
-            {
-                merge: true
-            }
-        );
-
-        setWaterCount(newWaterCount);
-
-        console.log(
-            "Water saved successfully:",
-            newWaterCount
-        );
-
-    } catch (error) {
-
-        console.error(
-            "Error saving water intake:",
-            error
-        );
-
-        alert(
-            "Water was not saved to Firestore.\n\n" +
-            error.message
-        );
-    }
-};
+            return;
+        }
 
 
-   
-    // Loading screen
-    
+        const user = auth.currentUser;
+
+        if (!user) {
+
+            return;
+        }
+
+
+        try {
+
+            const today = getTodayKey();
+
+            const waterDocRef = doc(
+                db,
+                "users",
+                user.uid,
+                "waterIntake",
+                today
+            );
+
+
+            const newWaterCount =
+                waterCount + 1;
+
+
+            await setDoc(
+                waterDocRef,
+                {
+                    glasses: newWaterCount,
+                    date: today,
+                    updatedAt: serverTimestamp()
+                },
+                {
+                    merge: true
+                }
+            );
+
+
+            setWaterCount(
+                newWaterCount
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "Error saving water intake:",
+                error
+            );
+        }
+    };
+
 
     if (loading) {
 
         return (
             <div className="container">
-                <p>Loading...</p>
+
+                <p>
+                    Loading...
+                </p>
+
             </div>
         );
     }
@@ -233,10 +259,6 @@ function Dashboard() {
         <>
 
             <main>
-
-                {/*
-                    DASHBOARD HEADER
-                 */}
 
                 <section className="dash-head">
 
@@ -292,10 +314,6 @@ function Dashboard() {
                 </section>
 
 
-                {/*
-                    DASHBOARD CONTENT
-                 */}
-
                 <section className="section">
 
                     <div className="container">
@@ -303,16 +321,8 @@ function Dashboard() {
                         <div className="dash-grid">
 
 
-                            {/*
-                                MAIN DASHBOARD
-                             */}
-
                             <div className="dash-main">
 
-
-                                {/* 
-                                    WELLNESS SCORE
-                                 */}
 
                                 <div className="dash-card score">
 
@@ -343,10 +353,6 @@ function Dashboard() {
                                 </div>
 
 
-                                {/* 
-                                    TODAY'S MOVEMENT
-                                */}
-
                                 <div className="dash-card">
 
                                     <div className="card-title">
@@ -357,55 +363,86 @@ function Dashboard() {
 
 
                                         <Link to="/workouts">
-
                                             Change plan →
-
                                         </Link>
 
                                     </div>
 
 
-                                    <div className="activity">
+                                    {workout ? (
 
-                                        <span className="activity-icon">
-                                            🏃
-                                        </span>
+                                        <div className="activity">
 
-
-                                        <div>
-
-                                            <b>
-                                                Full Body Beginner
-                                            </b>
+                                            <span className="activity-icon">
+                                                🏃
+                                            </span>
 
 
-                                            <small>
-                                                20 min • 6 exercises
-                                            </small>
+                                            <div>
+
+                                                <b>
+                                                    {workout.workoutName}
+                                                </b>
+
+
+                                                <small>
+                                                    {workout.duration}
+                                                    {" • "}
+                                                    {workout.level}
+                                                </small>
+
+                                            </div>
+
+
+                                            <button
+                                                onClick={() =>
+                                                    alert(
+                                                        "Workout marked as complete!"
+                                                    )
+                                                }
+                                            >
+                                                Complete
+                                            </button>
 
                                         </div>
 
+                                    ) : (
 
-                                        <button
-                                            onClick={() =>
-                                                alert(
-                                                    "Workout marked as complete!"
-                                                )
-                                            }
-                                        >
+                                        <div className="activity">
 
-                                            Complete
+                                            <span className="activity-icon">
+                                                🏃
+                                            </span>
 
-                                        </button>
 
-                                    </div>
+                                            <div>
+
+                                                <b>
+                                                    No workout selected
+                                                </b>
+
+
+                                                <small>
+                                                    Choose a workout
+                                                    from the workouts page.
+                                                </small>
+
+                                            </div>
+
+
+                                            <Link
+                                                to="/workouts"
+                                                className="btn small-btn"
+                                            >
+                                                Choose workout
+                                            </Link>
+
+                                        </div>
+
+                                    )}
 
                                 </div>
 
-
-                                {/* 
-                                    WATER INTAKE
-                                 */}
 
                                 <div className="dash-card">
 
@@ -423,8 +460,6 @@ function Dashboard() {
                                     </div>
 
 
-                                    {/* Water glasses */}
-
                                     <div className="water-row">
 
                                         {Array.from(
@@ -440,9 +475,7 @@ function Dashboard() {
                                                             : "water-glass"
                                                     }
                                                 >
-
                                                     💧
-
                                                 </span>
 
                                             )
@@ -451,8 +484,6 @@ function Dashboard() {
                                     </div>
 
 
-                                    {/* Add glass button */}
-
                                     <button
                                         className="btn small-btn"
                                         onClick={addWater}
@@ -460,19 +491,13 @@ function Dashboard() {
                                             waterCount >= 8
                                         }
                                     >
-
                                         ＋ Add glass
-
                                     </button>
 
                                 </div>
 
                             </div>
 
-
-                            {/* 
-                                SIDE CARD
-                             */}
 
                             <aside className="side-card">
 
@@ -514,8 +539,6 @@ function Dashboard() {
                                 </Link>
 
 
-                                {/* Motivation */}
-
                                 <div className="motivation">
 
                                     <span>
@@ -549,10 +572,6 @@ function Dashboard() {
             </main>
 
 
-            {/* 
-                FOOTER
-             */}
-
             <footer>
 
                 <div className="container footer">
@@ -566,8 +585,7 @@ function Dashboard() {
 
                         <span>
 
-                            Fit
-                            <span>
+                            Fit<span>
                                 Life
                             </span>
 
