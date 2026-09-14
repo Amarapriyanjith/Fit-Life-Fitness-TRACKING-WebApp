@@ -52,9 +52,9 @@ function Dashboard() {
 
                 try {
 
-                    // --------------------------------
+                    
                     // 1. Get user profile
-                    // --------------------------------
+                    
 
                     const userDocRef = doc(
                         db,
@@ -77,9 +77,9 @@ function Dashboard() {
                     }
 
 
-                    // --------------------------------
+                    
                     // 2. Get today's water record
-                    // --------------------------------
+                    
 
                     const today = getTodayKey();
 
@@ -111,10 +111,10 @@ function Dashboard() {
 
                     } else {
 
-                        // --------------------------------
+                        
                         // New day
                         // Default = 0 glasses
-                        // --------------------------------
+                        
 
                         await setDoc(
                             waterDocRef,
@@ -149,83 +149,74 @@ function Dashboard() {
     }, []);
 
 
-    // --------------------------------
+    
     // Add one glass of water
-    // --------------------------------
+    
 
-    const addWater = async () => {
+   const addWater = async () => {
 
-        // Maximum = 8 glasses
+    if (waterCount >= 8) {
+        return;
+    }
 
-        if (waterCount >= 8) {
+    const user = auth.currentUser;
 
-            return;
-        }
+    if (!user) {
+        alert("User is not logged in.");
+        return;
+    }
 
+    try {
 
-        const user = auth.currentUser;
+        const today = getTodayKey();
 
+        const waterDocRef = doc(
+            db,
+            "users",
+            user.uid,
+            "waterIntake",
+            today
+        );
 
-        if (!user) {
+        const newWaterCount = waterCount + 1;
 
-            return;
-        }
+        await setDoc(
+            waterDocRef,
+            {
+                glasses: newWaterCount,
+                date: today,
+                updatedAt: serverTimestamp()
+            },
+            {
+                merge: true
+            }
+        );
 
+        setWaterCount(newWaterCount);
 
-        try {
+        console.log(
+            "Water saved successfully:",
+            newWaterCount
+        );
 
-            const today = getTodayKey();
+    } catch (error) {
 
+        console.error(
+            "Error saving water intake:",
+            error
+        );
 
-            const waterDocRef = doc(
-                db,
-                "users",
-                user.uid,
-                "waterIntake",
-                today
-            );
-
-
-            const newWaterCount =
-                waterCount + 1;
-
-
-            // Save today's water intake
-
-            await setDoc(
-                waterDocRef,
-                {
-                    glasses: newWaterCount,
-                    date: today,
-                    updatedAt: serverTimestamp()
-                },
-                {
-                    merge: true
-                }
-            );
-
-
-            // Update screen
-
-            setWaterCount(
-                newWaterCount
-            );
-
-
-        } catch (error) {
-
-            console.error(
-                "Error saving water intake:",
-                error
-            );
-
-        }
-    };
+        alert(
+            "Water was not saved to Firestore.\n\n" +
+            error.message
+        );
+    }
+};
 
 
-    // --------------------------------
+   
     // Loading screen
-    // --------------------------------
+    
 
     if (loading) {
 
@@ -243,9 +234,9 @@ function Dashboard() {
 
             <main>
 
-                {/* ================================
+                {/*
                     DASHBOARD HEADER
-                ================================= */}
+                 */}
 
                 <section className="dash-head">
 
@@ -301,9 +292,9 @@ function Dashboard() {
                 </section>
 
 
-                {/* ================================
+                {/*
                     DASHBOARD CONTENT
-                ================================= */}
+                 */}
 
                 <section className="section">
 
@@ -312,16 +303,16 @@ function Dashboard() {
                         <div className="dash-grid">
 
 
-                            {/* ==========================
+                            {/*
                                 MAIN DASHBOARD
-                            =========================== */}
+                             */}
 
                             <div className="dash-main">
 
 
-                                {/* ========================
+                                {/* 
                                     WELLNESS SCORE
-                                ========================= */}
+                                 */}
 
                                 <div className="dash-card score">
 
@@ -352,9 +343,9 @@ function Dashboard() {
                                 </div>
 
 
-                                {/* ========================
+                                {/* 
                                     TODAY'S MOVEMENT
-                                ========================= */}
+                                */}
 
                                 <div className="dash-card">
 
@@ -412,9 +403,9 @@ function Dashboard() {
                                 </div>
 
 
-                                {/* ========================
+                                {/* 
                                     WATER INTAKE
-                                ========================= */}
+                                 */}
 
                                 <div className="dash-card">
 
@@ -479,9 +470,9 @@ function Dashboard() {
                             </div>
 
 
-                            {/* ==========================
+                            {/* 
                                 SIDE CARD
-                            =========================== */}
+                             */}
 
                             <aside className="side-card">
 
@@ -558,9 +549,9 @@ function Dashboard() {
             </main>
 
 
-            {/* ================================
+            {/* 
                 FOOTER
-            ================================= */}
+             */}
 
             <footer>
 
