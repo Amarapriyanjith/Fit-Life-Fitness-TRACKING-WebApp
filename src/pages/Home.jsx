@@ -11,7 +11,7 @@ export default function Home() {
             <div className="eyebrow">SMART FITNESS • BUILT FOR BEGINNERS</div>
             <h1>Build a healthier<br /><span>you, one day</span> at a time.</h1>
             <p className="hero-copy">
-              FitLife brings workouts, nutrition guidance, BMI, water tracking and progress monitoring together in one simple experience[cite: 7].
+              FitLife brings workouts, nutrition guidance, BMI, water tracking and progress monitoring together in one simple experience.
             </p>
             <div className="hero-actions">
               <Link className="btn primary" to="/dashboard">Start Your Journey <b>→</b></Link>
@@ -21,7 +21,7 @@ export default function Home() {
               <div className="avatars"><i>G</i><i>F</i><i>L</i><i>+</i></div>
               <div>
                 <strong>Made for real beginners</strong>
-                <small>Simple plans. Clear goals. No intimidation[cite: 7].</small>
+                <small>Simple plans. Clear goals. No intimidation.</small>
               </div>
             </div>
           </div>
@@ -50,26 +50,26 @@ export default function Home() {
               <div className="eyebrow">EVERYTHING IN ONE PLACE</div>
               <h2>Your fitness, <span>simplified.</span></h2>
             </div>
-            <p>Designed around the common problems beginners face with complicated fitness apps[cite: 7].</p>
+            <p>Designed around the common problems beginners face with complicated fitness apps.</p>
           </div>
           
           <div className="feature-grid">
             <Link className="feature" to="/workouts">
               <div className="icon">⚡</div>
               <h3>Personalized Workouts</h3>
-              <p>Choose beginner, intermediate or advanced plans that match your fitness level[cite: 7].</p>
+              <p>Choose beginner, intermediate or advanced plans that match your fitness level.</p>
               <b>View plans →</b>
             </Link>
             <Link className="feature" to="/nutrition">
               <div className="icon">🥗</div>
               <h3>Simple Meal Plans</h3>
-              <p>Understandable daily meal ideas with calorie-aware choices and practical portions[cite: 7].</p>
+              <p>Understandable daily meal ideas with calorie-aware choices and practical portions.</p>
               <b>Plan meals →</b>
             </Link>
             <Link className="feature" to="/tracking">
               <div className="icon">📊</div>
               <h3>Track Your Progress</h3>
-              <p>Monitor BMI, water, calories and your progress through a clear dashboard[cite: 7].</p>
+              <p>Monitor BMI, water, calories and your progress through a clear dashboard.</p>
               <b>See tracking →</b>
             </Link>
           </div>
@@ -83,7 +83,7 @@ export default function Home() {
             <div className="eyebrow">WHY FITLIFE?</div>
             <h2>Fitness shouldn't feel<br /><span>complicated.</span></h2>
             <p>
-              FitLife focuses on accessibility: beginner-friendly guidance, essential features without unnecessary barriers, and an onboarding experience that keeps the first step simple[cite: 7].
+              FitLife focuses on accessibility: beginner-friendly guidance, essential features without unnecessary barriers, and an onboarding experience that keeps the first step simple.
             </p>
             <Link className="btn light" to="/about">Learn About FitLife →</Link>
           </div>
@@ -104,7 +104,7 @@ export default function Home() {
             <div className="quote-mark">“</div>
             <div>
               <h3>Small habits become big results.</h3>
-              <p>Whether you're starting from zero or rebuilding your routine, FitLife is designed to help you stay consistent[cite: 7].</p>
+              <p>Whether you're starting from zero or rebuilding your routine, FitLife is designed to help you stay consistent.</p>
             </div>
             <Link className="btn primary" to="/dashboard">Try the Demo →</Link>
           </div>
