@@ -1,132 +1,142 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { auth } from "../firebase";
 
 function Navbar() {
-  const [menuOpen, setMenuOpen] = useState(false);
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [user, setUser] = useState(null);
 
-  const location = useLocation();
-  const navigate = useNavigate();
+    const location = useLocation();
+    const navigate = useNavigate();
 
-  // Check whether user is logged in
-  const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+            setUser(currentUser);
+        });
 
-  const closeMenu = () => {
-    setMenuOpen(false);
-  };
+        return () => unsubscribe();
+    }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("isLoggedIn");
-    closeMenu();
-    navigate("/");
-  };
+    const closeMenu = () => {
+        setMenuOpen(false);
+    };
 
-  return (
-    <header className="nav-wrap">
-      <nav className="nav container">
+    const handleLogout = async () => {
+        try {
+            await signOut(auth);
+            closeMenu();
+            navigate("/");
+        } catch (error) {
+            console.error("Logout error:", error);
+        }
+    };
 
-        {/* Logo */}
-        <Link className="brand" to="/" onClick={closeMenu}>
-          <span className="brand-mark">F</span>
-          <span>
-            Fit<span>Life</span>
-          </span>
-        </Link>
+    return (
+        <header className="nav-wrap">
+            <nav className="nav container">
 
-        {/* Mobile Menu Button */}
-        <button
-          className="menu"
-          onClick={() => setMenuOpen(!menuOpen)}
-        >
-          ☰
-        </button>
+                <Link
+                    className="brand"
+                    to="/"
+                    onClick={closeMenu}
+                >
+                    <span className="brand-mark">F</span>
+                    <span>
+                        Fit<span>Life</span>
+                    </span>
+                </Link>
 
-        {/* Navigation Links */}
-        <div className={`nav-links ${menuOpen ? "show" : ""}`}>
+                <button
+                    className="menu"
+                    onClick={() => setMenuOpen(!menuOpen)}
+                >
+                    ☰
+                </button>
 
-          <Link
-            className={location.pathname === "/" ? "active" : ""}
-            to="/"
-            onClick={closeMenu}
-          >
-            Home
-          </Link>
+                <div className={`nav-links ${menuOpen ? "show" : ""}`}>
 
-          <Link
-            className={location.pathname === "/workouts" ? "active" : ""}
-            to="/workouts"
-            onClick={closeMenu}
-          >
-            Workouts
-          </Link>
+                    <Link
+                        className={location.pathname === "/" ? "active" : ""}
+                        to="/"
+                        onClick={closeMenu}
+                    >
+                        Home
+                    </Link>
 
-          <Link
-            className={location.pathname === "/nutrition" ? "active" : ""}
-            to="/nutrition"
-            onClick={closeMenu}
-          >
-            Nutrition
-          </Link>
+                    <Link
+                        className={location.pathname === "/workouts" ? "active" : ""}
+                        to="/workouts"
+                        onClick={closeMenu}
+                    >
+                        Workouts
+                    </Link>
 
-          <Link
-            className={location.pathname === "/tracking" ? "active" : ""}
-            to="/tracking"
-            onClick={closeMenu}
-          >
-            Tracking
-          </Link>
+                    <Link
+                        className={location.pathname === "/nutrition" ? "active" : ""}
+                        to="/nutrition"
+                        onClick={closeMenu}
+                    >
+                        Nutrition
+                    </Link>
 
-          <Link
-            className={location.pathname === "/about" ? "active" : ""}
-            to="/about"
-            onClick={closeMenu}
-          >
-            About
-          </Link>
+                    <Link
+                        className={location.pathname === "/tracking" ? "active" : ""}
+                        to="/tracking"
+                        onClick={closeMenu}
+                    >
+                        Tracking
+                    </Link>
 
+                    <Link
+                        className={location.pathname === "/about" ? "active" : ""}
+                        to="/about"
+                        onClick={closeMenu}
+                    >
+                        About
+                    </Link>
 
-          {/* Right Side Buttons */}
+                    {!user ? (
+                        <>
+                            <Link
+                                className="nav-login"
+                                to="/login"
+                                onClick={closeMenu}
+                            >
+                                Login
+                            </Link>
 
-          {!isLoggedIn ? (
-            <>
-              <Link
-                className="nav-login"
-                to="/login"
-                onClick={closeMenu}
-              >
-                Login
-              </Link>
+                            <Link
+                                className="nav-signup"
+                                to="/register"
+                                onClick={closeMenu}
+                            >
+                                Sign Up
+                            </Link>
+                        </>
+                    ) : (
+                        <>
+                            <Link
+                                className="nav-dashboard"
+                                to="/dashboard"
+                                onClick={closeMenu}
+                            >
+                                Dashboard
+                            </Link>
 
-              <Link
-                className="nav-signup"
-                to="/register"
-                onClick={closeMenu}
-              >
-                Sign Up
-              </Link>
-            </>
-          ) : (
-            <>
-              <Link
-                className="nav-dashboard"
-                to="/dashboard"
-                onClick={closeMenu}
-              >
-                Dashboard
-              </Link>
+                            <button
+                                className="nav-logout"
+                                onClick={handleLogout}
+                            >
+                                Logout
+                            </button>
+                        </>
+                    )}
 
-              <button
-                className="nav-logout"
-                onClick={handleLogout}
-              >
-                Logout
-              </button>
-            </>
-          )}
-
-        </div>
-      </nav>
-    </header>
-  );
+                </div>
+            </nav>
+        </header>
+    );
 }
 
 export default Navbar;
