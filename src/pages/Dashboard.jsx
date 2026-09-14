@@ -36,6 +36,12 @@ function Dashboard() {
 
     const [completedWorkouts, setCompletedWorkouts] = useState(0);
 
+    const [notificationsEnabled, setNotificationsEnabled] =
+    useState(
+        "Notification" in window &&
+        Notification.permission === "granted"
+    );
+
 
     // Get today's date
 
@@ -899,6 +905,28 @@ function Dashboard() {
                                     </b>
 
                                 </Link>
+
+                                <button
+                                    className="btn small-btn"
+                                    onClick={async () => {
+                                        if ("Notification" in window) {
+                                            const permission =
+                                                await Notification.requestPermission();
+
+                                            if (permission === "granted") {
+                                                setNotificationsEnabled(true);
+
+                                                new Notification("FitLife Notifications", {
+                                                    body: "Notifications are now enabled! 💪"
+                                                });
+                                            }
+                                        }
+                                    }}
+                                >
+                                    {notificationsEnabled
+                                        ? "🔔 Notifications Enabled ✓"
+                                        : "🔔 Enable Notifications"}
+                                </button>
 
 
                                 <div className="motivation">
