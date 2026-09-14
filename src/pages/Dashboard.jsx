@@ -7,17 +7,18 @@ import {
     collection,
     query,
     orderBy,
-    limit,
     getDocs
 } from "firebase/firestore";
 
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../firebase";
 
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 
 function Dashboard() {
+
+    const navigate = useNavigate();
 
     const [userName, setUserName] = useState("");
 
@@ -25,7 +26,15 @@ function Dashboard() {
 
     const [waterCount, setWaterCount] = useState(0);
 
+    const [calories, setCalories] = useState(0);
+
+    const [bmi, setBmi] = useState(null);
+
     const [workout, setWorkout] = useState(null);
+
+    const [workoutCompleted, setWorkoutCompleted] = useState(false);
+
+    const [completedWorkouts, setCompletedWorkouts] = useState(0);
 
 
     // Get today's date
@@ -53,6 +62,8 @@ function Dashboard() {
                 if (!user) {
 
                     setLoading(false);
+
+                    navigate("/login");
 
                     return;
                 }
@@ -122,6 +133,59 @@ function Dashboard() {
                         setWaterCount(0);
                     }
 
+                    // Get today's calories
+
+                    const calorieDocRef = doc(
+                        db,
+                        "users",
+                        user.uid,
+                        "calorieTracking",
+                        today
+                    );
+
+                    const calorieDoc = await getDoc(
+                        calorieDocRef
+                    );
+
+                    if (calorieDoc.exists()) {
+
+                        const calorieData = calorieDoc.data();
+
+                        setCalories(
+                            calorieData.calories || 0
+                        );
+
+                    } else {
+
+                        setCalories(0);
+                    }
+
+
+                    // Get BMI data
+
+                    const bmiDocRef = doc(
+                        db,
+                        "users",
+                        user.uid,
+                        "healthData",
+                        "bmi"
+                    );
+
+                    const bmiDoc = await getDoc(
+                        bmiDocRef
+                    );
+
+                    if (bmiDoc.exists()) {
+
+                        const bmiData = bmiDoc.data();
+
+                        setBmi(bmiData);
+
+                    } else {
+
+                        setBmi(null);
+                    }
+
 
                     // Get the latest workout plan
 
@@ -136,7 +200,7 @@ function Dashboard() {
                     const workoutQuery = query(
                         workoutPlansRef,
                         orderBy("addedAt", "desc"),
-                        limit(1)
+                        
                     );
 
 
@@ -147,10 +211,21 @@ function Dashboard() {
 
                     if (!workoutSnapshot.empty) {
 
-                        const workoutData =
-                            workoutSnapshot.docs[0].data();
+                        const workoutData = {
+                            id: workoutSnapshot.docs[0].id,
+                            ...workoutSnapshot.docs[0].data()
+                        };
 
                         setWorkout(workoutData);
+                        setWorkoutCompleted(workoutData.completed === true);
+
+                        const completedCount = workoutSnapshot.docs.filter(
+                            (doc) => doc.data().completed === true
+                        ).length;
+
+                        setCompletedWorkouts(completedCount);
+
+                       
 
                     } else {
 
@@ -239,17 +314,120 @@ function Dashboard() {
         }
     };
 
+    // Remove one glass of water
+
+    const removeWater = async () => {
+
+        if (waterCount <= 0) {
+            return;
+        }
+
+        const user = auth.currentUser;
+
+        if (!user) {
+            return;
+        }
+
+        try {
+
+            const today = getTodayKey();
+
+            const waterDocRef = doc(
+                db,
+                "users",
+                user.uid,
+                "waterIntake",
+                today
+            );
+
+            const newWaterCount = waterCount - 1;
+
+            await setDoc(
+                waterDocRef,
+                {
+                    glasses: newWaterCount,
+                    date: today,
+                    updatedAt: serverTimestamp()
+                },
+                {
+                    merge: true
+                }
+            );
+
+            setWaterCount(newWaterCount);
+
+        } catch (error) {
+
+            console.error(
+                "Error removing water intake:",
+                error
+            );
+
+        }
+    };
+
+    // Mark workout as complete
+
+                const completeWorkout = async () => {
+
+                    const user = auth.currentUser;
+
+                    if (!user || !workout) {
+                        return;
+                    }
+
+                    try {
+
+                        const workoutRef = doc(
+                            db,
+                            "users",
+                            user.uid,
+                            "workoutPlans",
+                            workout.id
+                        );
+
+                        await setDoc(
+                            workoutRef,
+                            {
+                                completed: true,
+                                completedAt: serverTimestamp()
+                            },
+                            {
+                                merge: true
+                            }
+                        );
+
+                        setWorkoutCompleted(true);
+
+                    } catch (error) {
+
+                        console.error(
+                            "Error completing workout:",
+                            error
+                        );
+
+                    }
+                };
+
 
     if (loading) {
-
         return (
-            <div className="container">
+            <main>
+                <section className="section">
+                    <div className="container">
+                        <div className="dash-card loading-card">
+                            <div className="loading-spinner"></div>
 
-                <p>
-                    Loading...
-                </p>
+                            <h3>Loading your dashboard...</h3>
 
-            </div>
+                            <p>
+                                Please wait while we load your
+                                fitness data.
+                            </p>
+                        </div>
+                    </div>
+                </section>
+            </main>
         );
     }
 
@@ -296,18 +474,12 @@ function Dashboard() {
                         </div>
 
 
-                        <button
+                        <Link
+                            to="/tracking"
                             className="btn primary"
-                            onClick={() =>
-                                alert(
-                                    "Great job! Daily activity saved."
-                                )
-                            }
                         >
-
                             ＋ Log Activity
-
-                        </button>
+                        </Link>
 
                     </div>
 
@@ -334,20 +506,44 @@ function Dashboard() {
 
 
                                         <strong>
-                                            82
+                                            {Math.round(
+                                            (waterCount / 8) * 30 +
+                                            Math.min(calories / 600, 1) * 30 +
+                                            (bmi ? 20 : 0) +
+                                            (workoutCompleted ? 20 : 0)
+                                        )}
                                         </strong>
 
 
-                                        <p>
-                                            You're building a
-                                            solid routine.
-                                        </p>
+                                    <p>
+                                        {(() => {
+                                            const score = Math.round(
+                                                (waterCount / 8) * 30 +
+                                                Math.min(calories / 600, 1) * 30 +
+                                                (bmi ? 20 : 0) +
+                                                (workoutCompleted ? 20 : 0)
+                                            );
+
+                                            if (score >= 90) {
+                                                return "Excellent! You're doing great! 🎉";
+                                            } else if (score >= 70) {
+                                                return "Great progress! Keep going. 💪";
+                                            } else {
+                                                return "Keep building your healthy routine. 🌱";
+                                            }
+                                        })()}
+                                    </p>
 
                                     </div>
 
 
                                     <div className="ring">
-                                        82%
+                                        {Math.round(
+                                        (waterCount / 8) * 30 +
+                                        Math.min(calories / 600, 1) * 30 +
+                                        (bmi ? 20 : 0) +
+                                        (workoutCompleted ? 20 : 0)
+                                        )}%
                                     </div>
 
                                 </div>
@@ -394,15 +590,28 @@ function Dashboard() {
                                             </div>
 
 
-                                            <button
-                                                onClick={() =>
-                                                    alert(
-                                                        "Workout marked as complete!"
-                                                    )
-                                                }
-                                            >
-                                                Complete
-                                            </button>
+                                                <button
+                                                    onClick={completeWorkout}
+                                                    disabled={workoutCompleted}
+                                                >
+                                                    {workoutCompleted ? "Completed ✓" : "Complete"}
+                                                </button>
+
+                                                {workoutCompleted && (
+                                                <small style={{ color: "#18b981", fontWeight: "600" }}>
+                                                    Great job! Workout completed today 🎉
+                                                </small>
+                                            )}
+
+                                            <p style={{ marginTop: "10px", fontWeight: "600" }}>
+                                            Workouts completed: {completedWorkouts}
+                                            </p>
+
+                                            <small style={{ color: "#18b981", fontWeight: "600" }}>
+                                                {completedWorkouts >= 1
+                                                    ? "Daily workout goal completed! 🎉"
+                                                    : "Complete your workout to reach today's goal. 💪"}
+                                            </small>
 
                                         </div>
 
@@ -449,52 +658,205 @@ function Dashboard() {
                                     <div className="card-title">
 
                                         <h3>
-                                            Water intake
+                                            Daily calories
                                         </h3>
 
-
                                         <span>
-                                            {waterCount} / 8 glasses
+                                            {calories} / 600 kcal
                                         </span>
 
                                     </div>
 
+                                    <div className="progress">
 
-                                    <div className="water-row">
-
-                                        {Array.from(
-                                            { length: 8 },
-                                            (_, index) => (
-
-                                                <span
-                                                    key={index}
-                                                    className={
-                                                        index <
-                                                        waterCount
-                                                            ? "water-glass filled"
-                                                            : "water-glass"
-                                                    }
-                                                >
-                                                    💧
-                                                </span>
-
-                                            )
-                                        )}
+                                        <i
+                                            style={{
+                                                width: `${Math.min(
+                                                    (calories / 600) * 100,
+                                                    100
+                                                )}%`
+                                            }}
+                                        ></i>
 
                                     </div>
 
+                                        <p>
+                                            {calories >= 600
+                                                ? "Daily calorie goal reached! 🎉"
+                                                : calories >= 300
+                                                ? "Good progress! Keep going. 💪"
+                                                : "Start tracking your calories today. 🍎"}
+                                        </p>
+
+                                    <Link
+                                        to="/nutrition"
+                                        className="btn small-btn"
+                                    >
+                                        ＋ Add calories
+                                    </Link>
+
+                                </div>
+
+                                <div className="dash-card">
+
+                                    <div className="card-title">
+                                        <h3>Water intake</h3>
+                                        <span>{waterCount} / 8 glasses</span>
+                                    </div>
+
+                                <div className="water-glasses">
+
+                                    {[1, 2, 3, 4, 5, 6, 7, 8].map((glass) => (
+                                        <span
+                                            key={glass}
+                                            className={glass <= waterCount ? "filled" : ""}
+                                        >
+                                            💧
+                                        </span>
+                                    ))}
+
+                                </div>
+
+                                    <p>
+                                        {waterCount === 8
+                                            ? "Daily water goal completed! 🎉"
+                                            : waterCount >= 4
+                                            ? "Good progress! Almost there. 💪"
+                                            : "Keep going! You need more water. 💧"}
+                                    </p>
 
                                     <button
                                         className="btn small-btn"
                                         onClick={addWater}
-                                        disabled={
-                                            waterCount >= 8
-                                        }
+                                        disabled={waterCount >= 8}
                                     >
-                                        ＋ Add glass
+                                        ＋ Add water
+                                    </button>
+
+                                        <button
+                                        className="btn small-btn"
+                                        onClick={removeWater}
+                                        disabled={waterCount <= 0}
+                                    >
+                                        − Remove
                                     </button>
 
                                 </div>
+
+                                <div className="dash-card">
+
+                                <div className="card-title">
+                                    <h3>Today's progress</h3>
+                                    <span>Daily goals</span>
+                                </div>
+
+                                <div className="activity">
+                                    <span className="activity-icon">💧</span>
+                                    <div>
+                                        <b>Water</b>
+                                        <small>{waterCount} / 8 glasses</small>
+                                    </div>
+                                    <strong>{waterCount >= 8 ? "✓" : "—"}</strong>
+                                </div>
+
+                                <div className="activity">
+                                    <span className="activity-icon">🍎</span>
+                                    <div>
+                                        <b>Calories</b>
+                                        <small>{calories} / 600 kcal</small>
+                                    </div>
+                                    <strong>{calories >= 600 ? "✓" : "—"}</strong>
+                                </div>
+
+                                <div className="activity">
+                                    <span className="activity-icon">🏃</span>
+                                    <div>
+                                        <b>Workout</b>
+                                        <small>{completedWorkouts} / 1 completed</small>
+                                    </div>
+                                    <strong>{completedWorkouts >= 1 ? "✓" : "—"}</strong>
+                                </div>
+
+                                <div className="activity">
+                                    <span className="activity-icon">⚖️</span>
+                                    <div>
+                                        <b>BMI</b>
+                                        <small>{bmi ? "Calculated" : "Not calculated"}</small>
+                                    </div>
+                                    <strong>{bmi ? "✓" : "—"}</strong>
+                                </div>
+
+                            </div>
+
+
+                            </div>
+                        <div className="dash-side">
+                            <div className="dash-card bmi-dashboard-card">
+
+                                <div className="card-title">
+
+                                    <h3>
+                                        BMI
+                                    </h3>
+
+                                    <Link to="/tracking">
+                                        Update →
+                                    </Link>
+
+                                </div>
+
+                                {bmi ? (
+
+                                    <div className="activity">
+
+                                        <span className="activity-icon">
+                                            ⚖️
+                                        </span>
+
+                                        <div>
+
+                                            <b>
+                                                {bmi.bmi}
+                                            </b>
+
+                                            <small>
+                                                {bmi.status}
+                                            </small>
+
+                                        </div>
+
+                                    </div>
+
+                                ) : (
+
+                                    <div className="activity">
+
+                                        <span className="activity-icon">
+                                            ⚖️
+                                        </span>
+
+                                        <div>
+
+                                            <b>
+                                                BMI not calculated
+                                            </b>
+
+                                            <small>
+                                                Calculate your BMI to see it here.
+                                            </small>
+
+                                        </div>
+
+                                        <Link
+                                            to="/tracking"
+                                            className="btn small-btn"
+                                        >
+                                            Calculate
+                                        </Link>
+
+                                    </div>
+
+                                )}
 
                             </div>
 
@@ -562,6 +924,9 @@ function Dashboard() {
                                 </div>
 
                             </aside>
+                        </div>
+
+
 
                         </div>
 

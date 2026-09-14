@@ -179,9 +179,9 @@ input {
     color: var(--blue);
 }
 
-/* =========================
+/* 
    HERO SECTION
-   ========================= */
+  */
 
 .hero {
     background: linear-gradient(
@@ -237,9 +237,9 @@ h2 span {
 }
 
 
-/* =========================
+/* 
    BUTTONS
-   ========================= */
+    */
 
 .btn {
     display: inline-flex;
@@ -270,9 +270,9 @@ h2 span {
 }
 
 
-/* =========================
+/* 
    MINI PROOF / AVATARS
-   ========================= */
+    */
 
 .mini-proof {
     display: flex;
@@ -318,9 +318,9 @@ h2 span {
 }
 
 
-/* =========================
+/*
    HERO CARD
-   ========================= */
+    */
 
 .hero-card {
     height: 450px;
@@ -411,9 +411,9 @@ h2 span {
 }
 
 
-/* =========================
+/* 
    FLOATING CARDS
-   ========================= */
+   */
 
 .float-card {
     position: absolute;
@@ -450,9 +450,9 @@ h2 span {
 }
 
 
-/* =========================
+/*
    GENERAL SECTIONS
-   ========================= */
+   */
 
 .section {
     padding: 90px 0;
@@ -480,9 +480,9 @@ h2 span {
 }
 
 
-/* =========================
+/*
    FEATURE CARDS
-   ========================= */
+   */
 
 .feature-grid {
     display: grid;
@@ -535,9 +535,9 @@ h2 span {
 }
 
 
-/* =========================
+/* 
    DARK SECTION
-   ========================= */
+    */
 
 .dark-section {
     background: var(--dark);
@@ -575,9 +575,9 @@ h2 span {
 }
 
 
-/* =========================
+/* 
    QUOTE
-   ========================= */
+    */
 
 .quote {
     border: 1px solid var(--line);
@@ -610,9 +610,9 @@ h2 span {
 }
 
 
-/* =========================
+/* 
    PAGE HERO
-   ========================= */
+    */
 
 .page-hero {
     padding: 90px 0 75px;
@@ -631,9 +631,9 @@ h2 span {
 }
 
 
-/* =========================
+/* 
    TABS
-   ========================= */
+    */
 
 .tabs {
     display: flex;
@@ -658,9 +658,9 @@ h2 span {
 }
 
 
-/* =========================
+/* 
    WORKOUTS
-   ========================= */
+    */
 
 .workout-grid {
     display: grid;
@@ -700,9 +700,9 @@ h2 span {
 }
 
 
-/* =========================
+/*
    CENTER CTA
-   ========================= */
+     */
 
 .cta-center {
     text-align: center;
@@ -714,9 +714,9 @@ h2 span {
 }
 
 
-/* =========================
+/* 
    MEALS / NUTRITION
-   ========================= */
+   */
 
 .meal-grid {
     display: grid;
@@ -748,9 +748,9 @@ h2 span {
 }
 
 
-/* =========================
+/* 
    TIPS
-   ========================= */
+   */
 
 .tips {
     display: grid;
@@ -772,9 +772,9 @@ h2 span {
 }
 
 
-/* =========================
+/* 
    STATISTICS
-   ========================= */
+    */
 
 .stats-grid {
     display: grid;
@@ -811,9 +811,9 @@ h2 span {
 }
 
 
-/* =========================
+/* 
    BMI
-   ========================= */
+    */
 
 .bmi-box {
     display: grid;
@@ -867,9 +867,9 @@ h2 span {
 }
 
 
-/* =========================
+/* 
    DASHBOARD HEADER
-   ========================= */
+    */
 
 .dash-head {
     padding: 60px 0 35px;
@@ -887,14 +887,19 @@ h2 span {
 }
 
 
-/* =========================
+/* 
    DASHBOARD
-   ========================= */
+    */
 
 .dash-grid {
     display: grid;
     grid-template-columns: 1.6fr 0.8fr;
     gap: 20px;
+    align-items: start;
+}
+
+.bmi-dashboard-card {
+    height: fit-content;
 }
 
 .dash-main {
@@ -907,9 +912,9 @@ h2 span {
 }
 
 
-/* =========================
+/* 
    SCORE CARD
-   ========================= */
+   */
 
 .score {
     background: linear-gradient(
@@ -950,10 +955,65 @@ h2 span {
     font: 800 18px Outfit;
 }
 
+/* 
+   Water Intake
+   */
 
-/* =========================
+   .water-glasses {
+    display: flex;
+    gap: 8px;
+    margin: 15px 0;
+}
+
+.water-glasses span {
+    font-size: 24px;
+    opacity: 0.25;
+    transition: 0.2s ease;
+}
+
+.water-glasses span.filled {
+    opacity: 1;
+    transform: scale(1.1);
+}
+/* 
+   loading card
+   */
+
+.loading-card {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    margin: 0 auto 20px;
+    border: 4px solid var(--line);
+    border-top-color: var(--blue);
+    border-radius: 50%;
+    animation: dashboardSpin 0.8s linear infinite;
+}
+
+@keyframes dashboardSpin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.loading-card h3 {
+    margin: 0 0 8px;
+}
+
+.loading-card p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+}
+
+
+/* 
    CARD TITLE
-   ========================= */
+    */
 
 .card-title {
     display: flex;
@@ -973,9 +1033,9 @@ h2 span {
 }
 
 
-/* =========================
+/*
    ACTIVITY
-   ========================= */
+    */
 
 .activity {
     display: flex;
@@ -1014,9 +1074,9 @@ h2 span {
 }
 
 
-/* =========================
+/* 
    WATER TRACKING
-   ========================= */
+   */
 
 .water-row {
     display: flex;
@@ -1044,15 +1104,16 @@ h2 span {
 }
 
 
-/* =========================
+/* 
    SIDE CARD
-   ========================= */
+    */
 
 .side-card {
     border-radius: 18px;
     background: var(--soft);
     padding: 27px;
-    height: max-content;
+    height: auto;
+    align-self: start;
 }
 
 .side-card > a {
@@ -1067,11 +1128,35 @@ h2 span {
 .side-card > a b {
     color: var(--blue);
 }
+/* Compact BMI card */
 
 
-/* =========================
+.side-card .card-title {
+    margin-bottom: 18px;
+}
+
+.side-card .activity {
+    padding: 12px;
+}
+
+.side-card .activity-icon {
+    width: 48px;
+    height: 48px;
+    font-size: 22px;
+}
+
+.side-card .activity b {
+    font-size: 20px;
+}
+
+.side-card .activity small {
+    display: block;
+    margin-top: 4px;
+}
+
+/* 
    MOTIVATION
-   ========================= */
+    */
 
 .motivation {
     margin-top: 25px;
@@ -1097,9 +1182,9 @@ h2 span {
 }
 
 
-/* =========================
+/* 
    ABOUT PAGE
-   ========================= */
+   */
 
 .about-grid,
 .university {
@@ -1115,9 +1200,9 @@ h2 span {
 }
 
 
-/* =========================
+/* 
    TIMELINE
-   ========================= */
+   */
 
 .timeline {
     display: grid;
@@ -1149,9 +1234,9 @@ h2 span {
 }
 
 
-/* =========================
+/* 
    FOOTER
-   ========================= */
+   */
 
 footer {
     border-top: 1px solid var(--line);
@@ -1184,9 +1269,9 @@ footer {
 }
 
 
-/* =========================
+/* 
    TOAST
-   ========================= */
+   */
 
 .toast {
     position: fixed;
@@ -1224,9 +1309,9 @@ footer {
 }
 
 
-/* =========================
+/* 
    RESPONSIVE / MOBILE
-   ========================= */
+   */
 
 @media (max-width: 800px) {
 
@@ -1333,5 +1418,46 @@ footer {
 
     .footer a {
         margin: 0 15px 0 0;
+    }
+        .activity {
+        flex-wrap: wrap;
+    }
+
+    .activity > div {
+        min-width: 0;
+    }
+
+    .activity button {
+        margin-left: auto;
+    }
+
+    .activity small {
+        word-break: normal;
+    }
+}
+@media (max-width: 500px) {
+    .dash-card {
+        padding: 20px;
+    }
+
+    .activity {
+        gap: 10px;
+    }
+
+    .activity button {
+        width: auto;
+    }
+    .tabs {
+        display: flex;
+        width: 100%;
+        gap: 8px;
+    }
+
+    .tabs .tab {
+        flex: 1;
+        min-width: 0;
+        padding: 12px 8px;
+        font-size: 13px;
+        white-space: nowrap;
     }
 }

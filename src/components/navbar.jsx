@@ -36,26 +36,24 @@ function Navbar() {
     };
 
 
-    const handleLogout = async () => {
+const handleLogout = async () => {
 
-        try {
+    const confirmLogout = window.confirm(
+        "Are you sure you want to logout?"
+    );
 
-            await signOut(auth);
+    if (!confirmLogout) {
+        return;
+    }
 
-            closeMenu();
-
-            navigate("/");
-
-        } catch (error) {
-
-            console.error(
-                "Logout error:",
-                error
-            );
-
-        }
-
-    };
+    try {
+        await signOut(auth);
+        closeMenu();
+        navigate("/");
+    } catch (error) {
+        console.error("Logout error:", error);
+    }
+};
 
 
     return (
