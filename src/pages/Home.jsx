@@ -26,17 +26,9 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Hero visual card displaying daily stats and score */}
+          {/* Hero visual card  */}
           <div className="hero-card">
             <div className="orb"></div>
-            <div className="hero-stat">
-              <small>YOUR DAILY SCORE</small>
-              <strong>82<span>/100</span></strong>
-              <div className="progress"><i style={{ width: '82%' }}></i></div>
-              <small>Great start — keep it going[cite: 7].</small>
-            </div>
-            <div className="float-card fc1">💧 <b>1.6L</b><small>Water today</small></div>
-            <div className="float-card fc2">🔥 <b>420</b><small>Calories active</small></div>
             <div className="person">FIT<br />LIFE</div>
           </div>
         </div>
