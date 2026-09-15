@@ -3,6 +3,7 @@ import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../firebase";
 import { Link } from "react-router-dom";
 
+// Predefined workout data categorized by fitness levels (Beginner, Intermediate, Advanced)
 const workoutData = {
     beginner: [
         {
@@ -69,25 +70,31 @@ const workoutData = {
 };
 
 export default function Workouts() {
+    // State to track the currently selected fitness level tab ("beginner" by default)
     const [level, setLevel] = useState("beginner");
-    const [message, setMessage] = useState("");
     
-    // මෙන්න මෙතැන වෙනස් කළා (global saving වෙනුවට click කරන එකේ title එක track කිරීමට)
+    // State to handle feedback messages shown to the user (success/error alerts)
+    const [message, setMessage] = useState("");
+
+    // State to keep track of which specific workout card is currently saving/loading
     const [savingTitle, setSavingTitle] = useState(null);
 
-    // Add workout to the user's plan
+    // Function to handle saving a selected workout directly to the logged-in user's Firebase Firestore plan
     const handleAddToPlan = async (item) => {
         const user = auth.currentUser;
 
+        // Guard clause: Make sure the user is authenticated before writing to the database
         if (!user) {
             setMessage("Please log in to add a workout to your plan.");
             return;
         }
 
-        setSavingTitle(item.title); // අදාළ card එක පමණක් save වන බව පෙන්වීමට
+        // Set the active loading state for this specific card and clear old messages
+        setSavingTitle(item.title); 
         setMessage("");
 
         try {
+            // Push the workout details into the user's personal sub-collection in Firestore
             await addDoc(
                 collection(db, "users", user.uid, "workoutPlans"),
                 {
@@ -95,22 +102,25 @@ export default function Workouts() {
                     level: level,
                     duration: item.tag,
                     description: item.desc,
-                    addedAt: serverTimestamp()
+                    addedAt: serverTimestamp() // Automatically capture server time
                 }
             );
 
+            // Notify the user of success
             setMessage(`${item.title} added to your plan successfully!`);
         } catch (error) {
             console.error("Error adding workout:", error);
             setMessage("Workout could not be added. Please try again.");
         }
 
-        setSavingTitle(null); // වැඩේ අවසන් වූ පසු නැවත මුල් තත්වයට පත් කිරීම
+        // Reset the loading state back to normal once the async operation finishes
+        setSavingTitle(null);
     };
 
     return (
         <div>
             <main>
+                {/* Hero Header Section */}
                 <section className="page-hero">
                     <div className="container">
                         <div className="eyebrow">
@@ -131,8 +141,11 @@ export default function Workouts() {
                     </div>
                 </section>
 
+                {/* Workout Selection & Cards Section */}
                 <section className="section">
                     <div className="container">
+                        
+                        {/* Tab Switchers for Fitness Levels */}
                         <div className="tabs">
                             <button
                                 className={`tab ${
@@ -162,6 +175,7 @@ export default function Workouts() {
                             </button>
                         </div>
 
+                        {/* Conditional Alert Message Banner */}
                         {message && (
                             <div
                                 style={{
@@ -177,6 +191,7 @@ export default function Workouts() {
                             </div>
                         )}
 
+                        {/* Dynamic Grid Rendering Workouts Based on Current Tab */}
                         <div
                             className="workout-grid"
                             id="workoutGrid"
@@ -185,6 +200,11 @@ export default function Workouts() {
                                 <div
                                     className="workout"
                                     key={index}
+                                    style={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        height: "100%"
+                                    }}
                                 >
                                     <div className="w-icon">
                                         {item.icon}
@@ -194,7 +214,8 @@ export default function Workouts() {
                                         {item.title}
                                     </h3>
 
-                                    <p>
+                                    
+                                    <p style={{ flexGrow: 1 }}>
                                         {item.desc}
                                     </p>
 
@@ -202,10 +223,11 @@ export default function Workouts() {
                                         {item.tag}
                                     </span>
 
+                                    {/* Add to Plan Action Button */}
                                     <button
                                         className="btn primary"
                                         onClick={() => handleAddToPlan(item)}
-                                        disabled={savingTitle === item.title} // අදාළ button එක පමණක් disable වේ
+                                        disabled={savingTitle === item.title} 
                                         style={{
                                             marginTop: "15px",
                                             width: "100%"
@@ -221,6 +243,7 @@ export default function Workouts() {
                     </div>
                 </section>
 
+                {/* Bottom Call to Action Section */}
                 <section className="dark-section">
                     <div className="container cta-center">
                         <div className="eyebrow">
@@ -243,6 +266,7 @@ export default function Workouts() {
                 </section>
             </main>
 
+            {/* Site Footer */}
             <footer>
                 <div className="container footer">
                     <div className="brand">

@@ -53,12 +53,17 @@ const getTodayKey = () => {
 
 function Nutrition() {
     const [message, setMessage] = useState("");
-    const [saving, setSaving] = useState(false);
+    
+    // Separate saving states for calories form and individual meal cards
+    const [savingCalories, setSavingCalories] = useState(false);
+    const [savingMealName, setSavingMealName] = useState(null);
+
     const [calories, setCalories] = useState(0);
     const [calorieInput, setCalorieInput] = useState("");
 
     const calorieGoal = 600;
 
+    // Load today's total calories from Firestore on component mount
     useEffect(() => {
         const loadCalories = async () => {
             const user = auth.currentUser;
@@ -94,6 +99,7 @@ function Nutrition() {
         loadCalories();
     }, []);
 
+    // Handle adding manual calorie input
     const handleAddCalories = async (e) => {
         e.preventDefault();
 
@@ -115,12 +121,11 @@ function Nutrition() {
             return;
         }
 
-        setSaving(true);
+        setSavingCalories(true);
         setMessage("");
 
         try {
             const today = getTodayKey();
-
             const newTotal = calories + amount;
 
             const calorieRef = doc(
@@ -158,9 +163,10 @@ function Nutrition() {
             );
         }
 
-        setSaving(false);
+        setSavingCalories(false);
     };
 
+    // Handle adding a specific meal to the user's plan
     const handleAddMeal = async (meal) => {
         const user = auth.currentUser;
 
@@ -171,7 +177,8 @@ function Nutrition() {
             return;
         }
 
-        setSaving(true);
+        // Track saving state specifically for the clicked meal
+        setSavingMealName(meal.name);
         setMessage("");
 
         try {
@@ -205,7 +212,8 @@ function Nutrition() {
             );
         }
 
-        setSaving(false);
+        // Reset saving state after completion
+        setSavingMealName(null);
     };
 
     const progress =
@@ -344,9 +352,9 @@ function Nutrition() {
                                 <button
                                     className="btn primary"
                                     type="submit"
-                                    disabled={saving}
+                                    disabled={savingCalories}
                                 >
-                                    {saving
+                                    {savingCalories
                                         ? "Saving..."
                                         : "Add Calories →"}
                                 </button>
@@ -427,13 +435,14 @@ function Nutrition() {
                                         onClick={() =>
                                             handleAddMeal(meal)
                                         }
-                                        disabled={saving}
+                                        // Disable only the button for the specific meal being saved
+                                        disabled={savingMealName === meal.name}
                                         style={{
                                             marginTop: "15px",
                                             width: "100%"
                                         }}
                                     >
-                                        {saving
+                                        {savingMealName === meal.name
                                             ? "Saving..."
                                             : "Add to plan →"}
                                     </button>
