@@ -3,7 +3,7 @@ import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../firebase";
 import { Link } from "react-router-dom";
 
-
+// Predefined workout data categorized by fitness levels (Beginner, Intermediate, Advanced)
 const workoutData = {
     beginner: [
         {
@@ -69,93 +69,63 @@ const workoutData = {
     ]
 };
 
-
 export default function Workouts() {
-
+    // State to track the currently selected fitness level tab ("beginner" by default)
     const [level, setLevel] = useState("beginner");
-
+    
+    // State to handle feedback messages shown to the user (success/error alerts)
     const [message, setMessage] = useState("");
 
-    const [saving, setSaving] = useState(false);
+    // State to keep track of which specific workout card is currently saving/loading
+    const [savingTitle, setSavingTitle] = useState(null);
 
-
-    // Add workout to the user's plan
-
+    // Function to handle saving a selected workout directly to the logged-in user's Firebase Firestore plan
     const handleAddToPlan = async (item) => {
-
         const user = auth.currentUser;
 
+        // Guard clause: Make sure the user is authenticated before writing to the database
         if (!user) {
-
-            setMessage(
-                "Please log in to add a workout to your plan."
-            );
-
+            setMessage("Please log in to add a workout to your plan.");
             return;
         }
 
-
-        setSaving(true);
-
+        // Set the active loading state for this specific card and clear old messages
+        setSavingTitle(item.title); 
         setMessage("");
 
-
         try {
-
+            // Push the workout details into the user's personal sub-collection in Firestore
             await addDoc(
-                collection(
-                    db,
-                    "users",
-                    user.uid,
-                    "workoutPlans"
-                ),
+                collection(db, "users", user.uid, "workoutPlans"),
                 {
                     workoutName: item.title,
                     level: level,
                     duration: item.tag,
                     description: item.desc,
-                    addedAt: serverTimestamp()
+                    addedAt: serverTimestamp() // Automatically capture server time
                 }
             );
 
-
-            setMessage(
-                `${item.title} added to your plan successfully!`
-            );
-
+            // Notify the user of success
+            setMessage(`${item.title} added to your plan successfully!`);
         } catch (error) {
-
-            console.error(
-                "Error adding workout:",
-                error
-            );
-
-
-            setMessage(
-                "Workout could not be added. Please try again."
-            );
-
+            console.error("Error adding workout:", error);
+            setMessage("Workout could not be added. Please try again.");
         }
 
-
-        setSaving(false);
+        // Reset the loading state back to normal once the async operation finishes
+        setSavingTitle(null);
     };
 
-
     return (
-
         <div>
-
             <main>
-
+                {/* Hero Header Section */}
                 <section className="page-hero">
-
                     <div className="container">
-
                         <div className="eyebrow">
                             MOVE WITH CONFIDENCE
                         </div>
-
                         <h1>
                             Workouts that meet
                             <br />
@@ -163,70 +133,50 @@ export default function Workouts() {
                                 you where you are.
                             </span>
                         </h1>
-
                         <p>
                             Start small, learn the movements,
                             and build consistency. Select a
                             fitness level to explore a sample plan.
                         </p>
-
                     </div>
-
                 </section>
 
-
+                {/* Workout Selection & Cards Section */}
                 <section className="section">
-
                     <div className="container">
-
+                        
+                        {/* Tab Switchers for Fitness Levels */}
                         <div className="tabs">
-
                             <button
                                 className={`tab ${
-                                    level === "beginner"
-                                        ? "active"
-                                        : ""
+                                    level === "beginner" ? "active" : ""
                                 }`}
-                                onClick={() =>
-                                    setLevel("beginner")
-                                }
+                                onClick={() => setLevel("beginner")}
                             >
                                 Beginner
                             </button>
 
-
                             <button
                                 className={`tab ${
-                                    level === "intermediate"
-                                        ? "active"
-                                        : ""
+                                    level === "intermediate" ? "active" : ""
                                 }`}
-                                onClick={() =>
-                                    setLevel("intermediate")
-                                }
+                                onClick={() => setLevel("intermediate")}
                             >
                                 Intermediate
                             </button>
 
-
                             <button
                                 className={`tab ${
-                                    level === "advanced"
-                                        ? "active"
-                                        : ""
+                                    level === "advanced" ? "active" : ""
                                 }`}
-                                onClick={() =>
-                                    setLevel("advanced")
-                                }
+                                onClick={() => setLevel("advanced")}
                             >
                                 Advanced
                             </button>
-
                         </div>
 
-
+                        {/* Conditional Alert Message Banner */}
                         {message && (
-
                             <div
                                 style={{
                                     marginBottom: "20px",
@@ -239,79 +189,66 @@ export default function Workouts() {
                             >
                                 {message}
                             </div>
-
                         )}
 
-
+                        {/* Dynamic Grid Rendering Workouts Based on Current Tab */}
                         <div
                             className="workout-grid"
                             id="workoutGrid"
                         >
-
-                            {workoutData[level].map(
-                                (item, index) => (
-
-                                    <div
-                                        className="workout"
-                                        key={index}
-                                    >
-
-                                        <div className="w-icon">
-                                            {item.icon}
-                                        </div>
-
-
-                                        <h3>
-                                            {item.title}
-                                        </h3>
-
-
-                                        <p>
-                                            {item.desc}
-                                        </p>
-
-
-                                        <span className="tag">
-                                            {item.tag}
-                                        </span>
-
-
-                                        <button
-                                            className="btn primary"
-                                            onClick={() =>
-                                                handleAddToPlan(item)
-                                            }
-                                            disabled={saving}
-                                            style={{
-                                                marginTop: "15px",
-                                                width: "100%"
-                                            }}
-                                        >
-                                            {saving
-                                                ? "Saving..."
-                                                : "Add to plan →"}
-                                        </button>
-
+                            {workoutData[level].map((item, index) => (
+                                <div
+                                    className="workout"
+                                    key={index}
+                                    style={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        height: "100%"
+                                    }}
+                                >
+                                    <div className="w-icon">
+                                        {item.icon}
                                     </div>
 
-                                )
-                            )}
+                                    <h3>
+                                        {item.title}
+                                    </h3>
 
+                                    
+                                    <p style={{ flexGrow: 1 }}>
+                                        {item.desc}
+                                    </p>
+
+                                    <span className="tag">
+                                        {item.tag}
+                                    </span>
+
+                                    {/* Add to Plan Action Button */}
+                                    <button
+                                        className="btn primary"
+                                        onClick={() => handleAddToPlan(item)}
+                                        disabled={savingTitle === item.title} 
+                                        style={{
+                                            marginTop: "15px",
+                                            width: "100%"
+                                        }}
+                                    >
+                                        {savingTitle === item.title
+                                            ? "Saving..."
+                                            : "Add to plan →"}
+                                    </button>
+                                </div>
+                            ))}
                         </div>
-
                     </div>
-
                 </section>
 
-
+                {/* Bottom Call to Action Section */}
                 <section className="dark-section">
-
                     <div className="container cta-center">
-
                         <div className="eyebrow">
                             READY?
                         </div>
-
                         <h2>
                             Your first workout can start{" "}
                             <span>
@@ -319,51 +256,37 @@ export default function Workouts() {
                             </span>
                         </h2>
 
-
                         <Link
                             className="btn light"
                             to="/dashboard"
                         >
                             Open My Dashboard →
                         </Link>
-
                     </div>
-
                 </section>
-
             </main>
 
-
+            {/* Site Footer */}
             <footer>
-
                 <div className="container footer">
-
                     <div className="brand">
-
                         <span className="brand-mark">
                             F
                         </span>
-
                         <span>
                             Fit<span>Life</span>
                         </span>
-
                     </div>
-
 
                     <p>
                         Smart personalized fitness for beginners.
                     </p>
 
-
                     <small>
                         © 2026 FitLife Project
                     </small>
-
                 </div>
-
             </footer>
-
         </div>
     );
 }
