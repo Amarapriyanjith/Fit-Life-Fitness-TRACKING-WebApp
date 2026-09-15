@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     doc,
     setDoc,
-    serverTimestamp
+    serverTimestamp,
+    collection,
+    getDocs
 } from "firebase/firestore";
 
 import { auth, db } from "../firebase";
@@ -21,6 +23,197 @@ export default function Tracking() {
     const [recommendation, setRecommendation] = useState("");
 
     const [saving, setSaving] = useState(false);
+    const [waterCount, setWaterCount] = useState(0);
+    const [calories, setCalories] = useState(0);
+    const [weeklyStreak, setWeeklyStreak] = useState(0);    
+
+            // Load today's water and weekly activity
+
+        useEffect(() => {
+
+            const loadTrackingData = async () => {
+
+                const user = auth.currentUser;
+
+                if (!user) {
+                    return;
+                }
+
+                try {
+
+                    // Get today's date
+                    const now = new Date();
+
+                    const offset = now.getTimezoneOffset();
+
+                    const localDate = new Date(
+                        now.getTime() - offset * 60000
+                    );
+
+                    const today = localDate
+                        .toISOString()
+                        .slice(0, 10);
+
+
+                    // -------------------------
+                    // Load water intake
+                    // -------------------------
+
+                    const waterSnapshot = await getDocs(
+                        collection(
+                            db,
+                            "users",
+                            user.uid,
+                            "waterIntake"
+                        )
+                    );
+
+                    const todayWater = waterSnapshot.docs.find(
+                        (item) => item.id === today
+                    );
+
+                    if (todayWater) {
+
+                        setWaterCount(
+                            todayWater.data().glasses || 0
+                        );
+
+                    } else {
+
+                        setWaterCount(0);
+
+                    }
+
+
+                    // -------------------------
+                    // Find active days
+                    // -------------------------
+
+                    const activeDates = new Set();
+
+
+                    // Water activity
+                    waterSnapshot.docs.forEach((item) => {
+
+                        const data = item.data();
+
+                        if (data.glasses > 0) {
+                            activeDates.add(item.id);
+                        }
+
+                    });
+
+
+                    // Calorie activity
+                    const calorieSnapshot = await getDocs(
+                        collection(
+                            db,
+                            "users",
+                            user.uid,
+                            "calorieTracking"
+                        )
+                    );
+
+                    calorieSnapshot.docs.forEach((item) => {
+
+                        const data = item.data();
+
+                        if (data.calories > 0) {
+                            activeDates.add(item.id);
+                        }
+
+                    });
+
+
+                    // Workout activity
+                    const workoutSnapshot = await getDocs(
+                        collection(
+                            db,
+                            "users",
+                            user.uid,
+                            "workoutPlans"
+                        )
+                    );
+
+                    workoutSnapshot.docs.forEach((item) => {
+
+                        const data = item.data();
+
+                        if (
+                            data.completed === true &&
+                            data.completedAt
+                        ) {
+
+                            const completedDate =
+                                data.completedAt
+                                    .toDate()
+                                    .toISOString()
+                                    .slice(0, 10);
+
+                            activeDates.add(completedDate);
+
+                        }
+
+                    });
+
+
+                    // -------------------------
+                    // Calculate 7-day streak
+                    // -------------------------
+
+                    let streak = 0;
+
+                    const checkDate = new Date();
+
+                    for (let i = 0; i < 7; i++) {
+
+                        const offset =
+                            checkDate.getTimezoneOffset();
+
+                        const localCheckDate = new Date(
+                            checkDate.getTime() -
+                            offset * 60000
+                        );
+
+                        const dateKey = localCheckDate
+                            .toISOString()
+                            .slice(0, 10);
+
+
+                        if (activeDates.has(dateKey)) {
+
+                            streak++;
+
+                            checkDate.setDate(
+                                checkDate.getDate() - 1
+                            );
+
+                        } else {
+
+                            break;
+
+                        }
+
+                    }
+
+                    setWeeklyStreak(streak);
+
+
+                } catch (error) {
+
+                    console.error(
+                        "Error loading tracking data:",
+                        error
+                    );
+
+                }
+
+            };
+
+
+            loadTrackingData();
+
+        }, []);
 
 
     // Calculate BMI
@@ -232,7 +425,7 @@ export default function Tracking() {
 
 
                                 <strong>
-                                    1.6
+                                    {(waterCount * 0.3125).toFixed(1)}
                                     <small>
                                         / 2.5 L
                                     </small>
@@ -243,7 +436,7 @@ export default function Tracking() {
 
                                     <i
                                         style={{
-                                            width: "64%"
+                                            width: `${Math.min((waterCount / 8) * 100, 100)}%`
                                         }}
                                     ></i>
 
@@ -265,7 +458,7 @@ export default function Tracking() {
 
 
                                 <strong>
-                                    420
+                                    {calories}
                                     <small>
                                         kcal
                                     </small>
@@ -276,7 +469,7 @@ export default function Tracking() {
 
                                     <i
                                         style={{
-                                            width: "70%"
+                                            width: `${Math.min((calories / 600) * 100, 100)}%`
                                         }}
                                     ></i>
 
@@ -297,16 +490,20 @@ export default function Tracking() {
                                 </span>
 
 
-                                <strong>
-                                    5
-                                    <small>
-                                        days
-                                    </small>
-                                </strong>
+                                    <strong>
+                                        {weeklyStreak}
+                                        <small>
+                                             days
+                                        </small>
+                                    </strong>
 
 
                                 <div className="streak">
-                                    🔥 🔥 🔥 🔥 🔥 ○ ○
+                                    {[0, 1, 2, 3, 4, 5, 6].map((day) => (
+                                        <span key={day}>
+                                            {day < weeklyStreak ? "🔥" : "○"}
+                                        </span>
+                                    ))}
                                 </div>
 
 

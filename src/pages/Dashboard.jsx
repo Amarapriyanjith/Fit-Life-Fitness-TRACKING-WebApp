@@ -37,10 +37,11 @@ function Dashboard() {
     const [completedWorkouts, setCompletedWorkouts] = useState(0);
 
     const [notificationsEnabled, setNotificationsEnabled] =
-    useState(
-        "Notification" in window &&
-        Notification.permission === "granted"
-    );
+        useState(
+            "Notification" in window &&
+            Notification.permission === "granted" &&
+            localStorage.getItem("fitlifeNotifications") !== "disabled"
+        );
 
 
     // Get today's date
@@ -57,6 +58,53 @@ function Dashboard() {
 
         return localDate.toISOString().slice(0, 10);
     };
+
+
+useEffect(() => {
+
+    if (!notificationsEnabled) {
+        return;
+    }
+
+    const reminderTimer = setInterval(() => {
+
+        if (
+            "Notification" in window &&
+            Notification.permission === "granted"
+        ) {
+
+            if (waterCount < 8) {
+
+                new Notification("FitLife Water Reminder 💧", {
+                    body: `You have had ${waterCount} of 8 glasses today. Don't forget to drink water!`
+                });
+
+            } else if (calories < 600) {
+
+                new Notification("FitLife Calorie Reminder 🔥", {
+                    body: `You have tracked ${calories} of 600 kcal today. Don't forget to track your calories!`
+                });
+
+            } else if (!workoutCompleted) {
+
+                new Notification("FitLife Workout Reminder 🏃", {
+                    body: "You have not completed today's workout yet. You've got this! 💪"
+                });
+
+            } else {
+
+                new Notification("FitLife Daily Goals 🎉", {
+                    body: "Amazing! You've completed your main goals today. Keep it up! 🌟"
+                });
+
+            }
+        }
+
+    }, 1800000);
+
+    return () => clearInterval(reminderTimer);
+
+        }, [notificationsEnabled, waterCount,calories,workoutCompleted]);
 
 
     useEffect(() => {
@@ -749,6 +797,71 @@ function Dashboard() {
 
                                 </div>
 
+                            
+                            
+
+                        <div className="dash-card notification-card">
+
+                            <div className="card-title">
+                                <h3>Notifications</h3>
+                                <span>
+                                    {notificationsEnabled ? "Enabled" : "Disabled"}
+                                </span>
+                            </div>
+
+                            <p>
+                                {notificationsEnabled
+                                    ? "FitLife will remind you about your daily fitness goals."
+                                    : "Enable notifications to receive fitness reminders."}
+                            </p>
+
+                            <button
+                                className="btn small-btn"
+                                onClick={async () => {
+
+                                    if (notificationsEnabled) {
+
+                                        setNotificationsEnabled(false);
+
+                                        localStorage.setItem(
+                                            "fitlifeNotifications",
+                                            "disabled"
+                                        );
+
+                                    } else {
+
+                                        if ("Notification" in window) {
+
+                                            const permission =
+                                                await Notification.requestPermission();
+
+                                            if (permission === "granted") {
+
+                                                setNotificationsEnabled(true);
+
+                                                localStorage.setItem(
+                                                    "fitlifeNotifications",
+                                                    "enabled"
+                                                );
+
+                                                new Notification(
+                                                    "FitLife Notifications",
+                                                    {
+                                                        body: "Notifications are now enabled! 💪"
+                                                    }
+                                                );
+                                            }
+                                        }
+                                    }
+                                }}
+                            >
+                                {notificationsEnabled
+                                    ? "🔕 Disable Notifications"
+                                    : "🔔 Enable Notifications"}
+                            </button>
+
+                        </div>
+
                                 <div className="dash-card">
 
                                 <div className="card-title">
@@ -909,22 +1022,49 @@ function Dashboard() {
                                 <button
                                     className="btn small-btn"
                                     onClick={async () => {
-                                        if ("Notification" in window) {
-                                            const permission =
-                                                await Notification.requestPermission();
 
-                                            if (permission === "granted") {
-                                                setNotificationsEnabled(true);
+                                        if (notificationsEnabled) {
 
-                                                new Notification("FitLife Notifications", {
-                                                    body: "Notifications are now enabled! 💪"
-                                                });
+                                            setNotificationsEnabled(false);
+
+                                            localStorage.setItem(
+                                                "fitlifeNotifications",
+                                                "disabled"
+                                            );
+
+                                        } else {
+
+                                            if ("Notification" in window) {
+
+                                                const permission =
+                                                    await Notification.requestPermission();
+
+                                                if (permission === "granted") {
+
+                                                    setNotificationsEnabled(true);
+
+                                                    localStorage.setItem(
+                                                        "fitlifeNotifications",
+                                                        "enabled"
+                                                    );
+
+                                                    new Notification(
+                                                        "FitLife Notifications",
+                                                        {
+                                                            body: "Notifications are now enabled! 💪"
+                                                        }
+                                                    );
+
+                                                }
+
                                             }
+
                                         }
+
                                     }}
                                 >
                                     {notificationsEnabled
-                                        ? "🔔 Notifications Enabled ✓"
+                                        ? "🔕 Disable Notifications"
                                         : "🔔 Enable Notifications"}
                                 </button>
 
