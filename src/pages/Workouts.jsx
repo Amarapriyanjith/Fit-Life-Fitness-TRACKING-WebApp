@@ -3,68 +3,68 @@ import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../firebase";
 import { Link } from "react-router-dom";
 
-// Predefined workout data categorized by fitness levels (Beginner, Intermediate, Advanced)
+// Predefined workout data categorized by fitness levels matching your design screenshots
 const workoutData = {
     beginner: [
         {
+            icon: "🚶‍♂️",
+            title: "Full Body Starter",
+            desc: "20 min • 6 exercises",
+            tag: "Easy"
+        },
+        {
             icon: "🧘",
-            title: "Full Body Mobility",
-            desc: "Gentle stretches to wake up joints and improve posture.",
-            tag: "15 MINS"
+            title: "Mobility & Stretch",
+            desc: "15 min • 5 exercises",
+            tag: "Recovery"
         },
         {
-            icon: "🚶",
-            title: "Low-Impact Walking Cardio",
-            desc: "Step-based routine designed to get your heart rate up safely.",
-            tag: "20 MINS"
-        },
-        {
-            icon: "🛋️",
-            title: "Chair & Wall Strength",
-            desc: "Build foundational strength using supportive furniture.",
-            tag: "15 MINS"
+            icon: "🏋️‍♂️",
+            title: "Beginner Strength",
+            desc: "25 min • 7 exercises",
+            tag: "Low impact"
         }
     ],
 
     intermediate: [
         {
-            icon: "⚡",
-            title: "Dynamic Core Sculpt",
-            desc: "Strengthen your abdominal muscles with controlled movements.",
-            tag: "25 MINS"
+            icon: "🏃‍♂️",
+            title: "Full Body Burn",
+            desc: "35 min • 8 exercises",
+            tag: "Moderate"
         },
         {
-            icon: "🏋️",
-            title: "Dumbbell Basics",
-            desc: "Introduction to weighted exercises for muscle tone.",
-            tag: "30 MINS"
+            icon: "💪",
+            title: "Upper Body Focus",
+            desc: "30 min • 7 exercises",
+            tag: "Strength"
         },
         {
-            icon: "🏃",
-            title: "Interval Jog & Walk",
-            desc: "Alternating paces to boost endurance and stamina.",
-            tag: "30 MINS"
+            icon: "🦵",
+            title: "Lower Body Power",
+            desc: "32 min • 8 exercises",
+            tag: "Strength"
         }
     ],
 
     advanced: [
         {
             icon: "🔥",
-            title: "High Intensity HIIT",
-            desc: "Push your limits with fast-paced explosive bodyweight moves.",
-            tag: "40 MINS"
+            title: "HIIT Challenge",
+            desc: "40 min • 10 exercises",
+            tag: "High intensity"
         },
         {
-            icon: "💪",
-            title: "Advanced Power Circuit",
-            desc: "Challenging compound lifts and explosive strength drills.",
-            tag: "45 MINS"
+            icon: "⚡",
+            title: "Strength Circuit",
+            desc: "45 min • 9 exercises",
+            tag: "Advanced"
         },
         {
-            icon: "🚴",
-            title: "Endurance Cardio Blast",
-            desc: "Maximum effort endurance training for peak conditioning.",
-            tag: "50 MINS"
+            icon: "🏆",
+            title: "Athletic Conditioning",
+            desc: "50 min • 12 exercises",
+            tag: "Expert"
         }
     ]
 };
@@ -100,8 +100,8 @@ export default function Workouts() {
                 {
                     workoutName: item.title,
                     level: level,
-                    duration: item.tag,
-                    description: item.desc,
+                    duration: item.desc,
+                    tag: item.tag,
                     addedAt: serverTimestamp() // Automatically capture server time
                 }
             );
@@ -203,25 +203,27 @@ export default function Workouts() {
                                     style={{
                                         display: "flex",
                                         flexDirection: "column",
-                                        height: "100%"
+                                        height: "100%",
+                                        position: "relative"
                                     }}
                                 >
-                                    <div className="w-icon">
-                                        {item.icon}
+                                    {/* Top row containing Icon and Small Tag (like Easy, Moderate, High intensity) */}
+                                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "15px" }}>
+                                        <div className="w-icon" style={{ fontSize: "28px", margin: 0 }}>
+                                            {item.icon}
+                                        </div>
+                                        <span className="tag" style={{ background: "#eff6ff", color: "#2563eb", padding: "4px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: "600" }}>
+                                            {item.tag}
+                                        </span>
                                     </div>
 
-                                    <h3>
+                                    <h3 style={{ marginBottom: "8px" }}>
                                         {item.title}
                                     </h3>
-
                                     
-                                    <p style={{ flexGrow: 1 }}>
+                                    <p style={{ flexGrow: 1, color: "#64748b", fontSize: "14px", marginBottom: "20px" }}>
                                         {item.desc}
                                     </p>
-
-                                    <span className="tag">
-                                        {item.tag}
-                                    </span>
 
                                     {/* Add to Plan Action Button */}
                                     <button
@@ -229,7 +231,7 @@ export default function Workouts() {
                                         onClick={() => handleAddToPlan(item)}
                                         disabled={savingTitle === item.title} 
                                         style={{
-                                            marginTop: "15px",
+                                            marginTop: "auto",
                                             width: "100%"
                                         }}
                                     >
