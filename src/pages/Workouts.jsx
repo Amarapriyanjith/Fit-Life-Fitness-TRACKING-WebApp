@@ -3,7 +3,6 @@ import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { auth, db } from "../firebase";
 import { Link } from "react-router-dom";
 
-
 const workoutData = {
     beginner: [
         {
@@ -69,46 +68,28 @@ const workoutData = {
     ]
 };
 
-
 export default function Workouts() {
-
     const [level, setLevel] = useState("beginner");
-
     const [message, setMessage] = useState("");
-
-    const [saving, setSaving] = useState(false);
-
+    
+    // මෙන්න මෙතැන වෙනස් කළා (global saving වෙනුවට click කරන එකේ title එක track කිරීමට)
+    const [savingTitle, setSavingTitle] = useState(null);
 
     // Add workout to the user's plan
-
     const handleAddToPlan = async (item) => {
-
         const user = auth.currentUser;
 
         if (!user) {
-
-            setMessage(
-                "Please log in to add a workout to your plan."
-            );
-
+            setMessage("Please log in to add a workout to your plan.");
             return;
         }
 
-
-        setSaving(true);
-
+        setSavingTitle(item.title); // අදාළ card එක පමණක් save වන බව පෙන්වීමට
         setMessage("");
 
-
         try {
-
             await addDoc(
-                collection(
-                    db,
-                    "users",
-                    user.uid,
-                    "workoutPlans"
-                ),
+                collection(db, "users", user.uid, "workoutPlans"),
                 {
                     workoutName: item.title,
                     level: level,
@@ -118,44 +99,23 @@ export default function Workouts() {
                 }
             );
 
-
-            setMessage(
-                `${item.title} added to your plan successfully!`
-            );
-
+            setMessage(`${item.title} added to your plan successfully!`);
         } catch (error) {
-
-            console.error(
-                "Error adding workout:",
-                error
-            );
-
-
-            setMessage(
-                "Workout could not be added. Please try again."
-            );
-
+            console.error("Error adding workout:", error);
+            setMessage("Workout could not be added. Please try again.");
         }
 
-
-        setSaving(false);
+        setSavingTitle(null); // වැඩේ අවසන් වූ පසු නැවත මුල් තත්වයට පත් කිරීම
     };
 
-
     return (
-
         <div>
-
             <main>
-
                 <section className="page-hero">
-
                     <div className="container">
-
                         <div className="eyebrow">
                             MOVE WITH CONFIDENCE
                         </div>
-
                         <h1>
                             Workouts that meet
                             <br />
@@ -163,70 +123,46 @@ export default function Workouts() {
                                 you where you are.
                             </span>
                         </h1>
-
                         <p>
                             Start small, learn the movements,
                             and build consistency. Select a
                             fitness level to explore a sample plan.
                         </p>
-
                     </div>
-
                 </section>
 
-
                 <section className="section">
-
                     <div className="container">
-
                         <div className="tabs">
-
                             <button
                                 className={`tab ${
-                                    level === "beginner"
-                                        ? "active"
-                                        : ""
+                                    level === "beginner" ? "active" : ""
                                 }`}
-                                onClick={() =>
-                                    setLevel("beginner")
-                                }
+                                onClick={() => setLevel("beginner")}
                             >
                                 Beginner
                             </button>
 
-
                             <button
                                 className={`tab ${
-                                    level === "intermediate"
-                                        ? "active"
-                                        : ""
+                                    level === "intermediate" ? "active" : ""
                                 }`}
-                                onClick={() =>
-                                    setLevel("intermediate")
-                                }
+                                onClick={() => setLevel("intermediate")}
                             >
                                 Intermediate
                             </button>
 
-
                             <button
                                 className={`tab ${
-                                    level === "advanced"
-                                        ? "active"
-                                        : ""
+                                    level === "advanced" ? "active" : ""
                                 }`}
-                                onClick={() =>
-                                    setLevel("advanced")
-                                }
+                                onClick={() => setLevel("advanced")}
                             >
                                 Advanced
                             </button>
-
                         </div>
 
-
                         {message && (
-
                             <div
                                 style={{
                                     marginBottom: "20px",
@@ -239,79 +175,57 @@ export default function Workouts() {
                             >
                                 {message}
                             </div>
-
                         )}
-
 
                         <div
                             className="workout-grid"
                             id="workoutGrid"
                         >
-
-                            {workoutData[level].map(
-                                (item, index) => (
-
-                                    <div
-                                        className="workout"
-                                        key={index}
-                                    >
-
-                                        <div className="w-icon">
-                                            {item.icon}
-                                        </div>
-
-
-                                        <h3>
-                                            {item.title}
-                                        </h3>
-
-
-                                        <p>
-                                            {item.desc}
-                                        </p>
-
-
-                                        <span className="tag">
-                                            {item.tag}
-                                        </span>
-
-
-                                        <button
-                                            className="btn primary"
-                                            onClick={() =>
-                                                handleAddToPlan(item)
-                                            }
-                                            disabled={saving}
-                                            style={{
-                                                marginTop: "15px",
-                                                width: "100%"
-                                            }}
-                                        >
-                                            {saving
-                                                ? "Saving..."
-                                                : "Add to plan →"}
-                                        </button>
-
+                            {workoutData[level].map((item, index) => (
+                                <div
+                                    className="workout"
+                                    key={index}
+                                >
+                                    <div className="w-icon">
+                                        {item.icon}
                                     </div>
 
-                                )
-                            )}
+                                    <h3>
+                                        {item.title}
+                                    </h3>
 
+                                    <p>
+                                        {item.desc}
+                                    </p>
+
+                                    <span className="tag">
+                                        {item.tag}
+                                    </span>
+
+                                    <button
+                                        className="btn primary"
+                                        onClick={() => handleAddToPlan(item)}
+                                        disabled={savingTitle === item.title} // අදාළ button එක පමණක් disable වේ
+                                        style={{
+                                            marginTop: "15px",
+                                            width: "100%"
+                                        }}
+                                    >
+                                        {savingTitle === item.title
+                                            ? "Saving..."
+                                            : "Add to plan →"}
+                                    </button>
+                                </div>
+                            ))}
                         </div>
-
                     </div>
-
                 </section>
 
-
                 <section className="dark-section">
-
                     <div className="container cta-center">
-
                         <div className="eyebrow">
                             READY?
                         </div>
-
                         <h2>
                             Your first workout can start{" "}
                             <span>
@@ -319,51 +233,36 @@ export default function Workouts() {
                             </span>
                         </h2>
 
-
                         <Link
                             className="btn light"
                             to="/dashboard"
                         >
                             Open My Dashboard →
                         </Link>
-
                     </div>
-
                 </section>
-
             </main>
 
-
             <footer>
-
                 <div className="container footer">
-
                     <div className="brand">
-
                         <span className="brand-mark">
                             F
                         </span>
-
                         <span>
                             Fit<span>Life</span>
                         </span>
-
                     </div>
-
 
                     <p>
                         Smart personalized fitness for beginners.
                     </p>
 
-
                     <small>
                         © 2026 FitLife Project
                     </small>
-
                 </div>
-
             </footer>
-
         </div>
     );
 }
