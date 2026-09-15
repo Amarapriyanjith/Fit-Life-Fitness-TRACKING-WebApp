@@ -1233,6 +1233,26 @@ h2 span {
     color: var(--muted);
 }
 
+/* 
+   notification card
+   */
+
+.notification-card {
+    margin-top: 0;
+}
+
+.notification-card .card-title span {
+    font-weight: 700;
+    font-size: 12px;
+}
+
+.notification-card p {
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.6;
+    margin: 10px 0 16px;
+}
+
 
 /* 
    FOOTER
