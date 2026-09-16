@@ -23,32 +23,32 @@ const workoutData = {
                 {
                     id: "fbs-1",
                     name: "Marching in Place",
-                    duration: 0.05
+                    duration: 5
                 },
                 {
                     id: "fbs-2",
                     name: "Bodyweight Squats",
-                    duration: 0.05
+                    duration: 5
                 },
                 {
                     id: "fbs-3",
                     name: "Wall Push-Ups",
-                    duration: 0.05
+                    duration: 5
                 },
                 {
                     id: "fbs-4",
                     name: "Standing Knee Raises",
-                    duration: 0.05
+                    duration: 5
                 },
                 {
                     id: "fbs-5",
                     name: "Glute Bridges",
-                    duration: 0.05
+                    duration: 5
                 },
                 {
                     id: "fbs-6",
                     name: "Standing Calf Raises",
-                    duration: 0.05
+                    duration: 5
                 }
             ]
         },
@@ -63,32 +63,32 @@ const workoutData = {
                 {
                     id: "mas-1",
                     name: "Neck Stretch",
-                    duration: 0.05
+                    duration: 5
                 },
                 {
                     id: "mas-2",
                     name: "Shoulder Rolls",
-                    duration: 0.05
+                    duration: 5
                 },
                 {
                     id: "mas-3",
                     name: "Arm Circles",
-                    duration: 0.05
+                    duration: 5
                 },
                 {
                     id: "mas-4",
                     name: "Torso Rotation",
-                    duration: 0.05
+                    duration: 5
                 },
                 {
                     id: "mas-5",
                     name: "Hip Circles",
-                    duration: 0.05
+                    duration: 5
                 },
                 {
                     id: "mas-6",
                     name: "Hamstring Stretch",
-                    duration: 0.05
+                    duration: 5
                 }
             ]
         },

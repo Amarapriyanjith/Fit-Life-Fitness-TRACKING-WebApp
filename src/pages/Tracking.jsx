@@ -25,6 +25,7 @@ export default function Tracking() {
     const [saving, setSaving] = useState(false);
     const [waterCount, setWaterCount] = useState(0);
     const [calories, setCalories] = useState(0);
+    const [calorieInput, setCalorieInput] = useState("");
     const [weeklyStreak, setWeeklyStreak] = useState(0);    
 
             // Load today's water and weekly activity
@@ -55,10 +56,8 @@ export default function Tracking() {
                         .slice(0, 10);
 
 
-                    // -------------------------
                     // Load water intake
-                    // -------------------------
-
+                    
                     const waterSnapshot = await getDocs(
                         collection(
                             db,
@@ -84,11 +83,8 @@ export default function Tracking() {
 
                     }
 
-
-                    // -------------------------
                     // Find active days
-                    // -------------------------
-
+                    
                     const activeDates = new Set();
 
 
@@ -104,25 +100,44 @@ export default function Tracking() {
                     });
 
 
-                    // Calorie activity
-                    const calorieSnapshot = await getDocs(
-                        collection(
-                            db,
-                            "users",
-                            user.uid,
-                            "calorieTracking"
-                        )
-                    );
+                            // Load today's calories
+                            const calorieSnapshot = await getDocs(
+                                collection(
+                                    db,
+                                    "users",
+                                    user.uid,
+                                    "calorieTracking"
+                                )
+                            );
 
-                    calorieSnapshot.docs.forEach((item) => {
+                            const todayCalories =
+                                calorieSnapshot.docs.find(
+                                    (item) => item.id === today
+                                );
 
-                        const data = item.data();
+                            if (todayCalories) {
 
-                        if (data.calories > 0) {
-                            activeDates.add(item.id);
-                        }
+                                setCalories(
+                                    todayCalories.data().calories || 0
+                                );
 
-                    });
+                            } else {
+
+                                setCalories(0);
+
+                            }
+
+
+                            // Add calorie activity dates
+                            calorieSnapshot.docs.forEach((item) => {
+
+                                const data = item.data();
+
+                                if (data.calories > 0) {
+                                    activeDates.add(item.id);
+                                }
+
+                            });
 
 
                     // Workout activity
@@ -214,6 +229,95 @@ export default function Tracking() {
             loadTrackingData();
 
         }, []);
+
+        // Save today's calories
+                const handleSaveCalories = async (e) => {
+
+                    e.preventDefault();
+
+                    const user = auth.currentUser;
+
+                    if (!user) {
+                        return;
+                    }
+
+                    const calorieValue =
+                        parseInt(calorieInput, 10);
+
+                    if (
+                        !calorieValue ||
+                        calorieValue < 0
+                    ) {
+                        return;
+                    }
+
+                    setSaving(true);
+
+                    try {
+
+                        const now = new Date();
+
+                        const offset =
+                            now.getTimezoneOffset();
+
+                        const localDate =
+                            new Date(
+                                now.getTime() -
+                                offset * 60000
+                            );
+
+                        const today =
+                            localDate
+                                .toISOString()
+                                .slice(0, 10);
+
+
+                        const calorieDocRef = doc(
+                            db,
+                            "users",
+                            user.uid,
+                            "calorieTracking",
+                            today
+                        );
+
+
+                        await setDoc(
+                            calorieDocRef,
+                            {
+                                calories: calorieValue,
+                                date: today,
+                                updatedAt: serverTimestamp()
+                            },
+                            {
+                                merge: true
+                            }
+                        );
+
+
+                        setCalories(
+                            calorieValue
+                        );
+
+                        setCalorieInput("");
+
+                        console.log(
+                            "Calories saved successfully:",
+                            calorieValue
+                        );
+
+                    } catch (error) {
+
+                        console.error(
+                            "Error saving calories:",
+                            error
+                        );
+
+                    } finally {
+
+                        setSaving(false);
+
+                    }
+                };
 
 
     // Calculate BMI
@@ -475,10 +579,39 @@ export default function Tracking() {
 
                                 </div>
 
+                                    <p>
+                                        600 kcal target
+                                    </p>
 
-                                <p>
-                                    600 kcal target
-                                </p>
+                                    <form
+                                        className="calorie-form"
+                                        onSubmit={handleSaveCalories}
+                                    >
+
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            max="5000"
+                                            placeholder="Enter calories"
+                                            value={calorieInput}
+                                            onChange={(e) =>
+                                                setCalorieInput(
+                                                    e.target.value
+                                                )
+                                            }
+                                        />
+
+                                        <button
+                                            className="btn primary"
+                                            type="submit"
+                                            disabled={saving}
+                                        >
+                                            {saving
+                                                ? "Saving..."
+                                                : "Save Calories"}
+                                        </button>
+
+                                    </form>
 
                             </div>
 
