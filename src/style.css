@@ -1253,6 +1253,33 @@ h2 span {
     margin: 10px 0 16px;
 }
 
+/* Calorie tracking */
+
+.calorie-form {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.calorie-form input {
+    flex: 1;
+    min-width: 0;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    font-size: 15px;
+    outline: none;
+}
+
+.calorie-form input:focus {
+    border-color: var(--blue);
+}
+
+.calorie-form button {
+    flex-shrink: 0;
+}
+
+
 /* Workout details */
 
 .workout-details-container {
@@ -1457,38 +1484,6 @@ h2 span {
     margin-top: 25px;
 }
 
-
-/* Workout details responsive */
-
-@media (max-width: 600px) {
-
-    .workout-details-container {
-        width: 100%;
-    }
-
-    .exercise-demo {
-        height: 220px;
-    }
-
-    .exercise-demo-icon {
-        font-size: 50px;
-    }
-
-    .exercise-timer {
-        font-size: 40px;
-    }
-
-    .exercise-list-item {
-        align-items: flex-start;
-    }
-
-    .exercise-status {
-        font-size: 12px;
-    }
-
-}
-
-
 /* 
    FOOTER
    */
@@ -1561,6 +1556,43 @@ footer {
         transform: none;
         opacity: 1;
     }
+}
+
+/* Workout details responsive */
+
+@media (max-width: 600px) {
+
+    .workout-details-container {
+        width: 100%;
+    }
+
+    .exercise-demo {
+        height: 220px;
+    }
+
+    .exercise-demo-icon {
+        font-size: 50px;
+    }
+
+    .exercise-timer {
+        font-size: 40px;
+    }
+
+    .exercise-list-item {
+        align-items: flex-start;
+    }
+
+    .exercise-status {
+        font-size: 12px;
+    }
+        .calorie-form {
+        flex-direction: column;
+    }
+
+    .calorie-form button {
+        width: 100%;
+    }
+
 }
 
 

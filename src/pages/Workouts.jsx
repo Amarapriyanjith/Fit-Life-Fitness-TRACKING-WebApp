@@ -23,32 +23,32 @@ const workoutData = {
                 {
                     id: "fbs-1",
                     name: "Marching in Place",
-                    duration: 0.05
+                    duration: 5
                 },
                 {
                     id: "fbs-2",
                     name: "Bodyweight Squats",
-                    duration: 0.05
+                    duration: 5
                 },
                 {
                     id: "fbs-3",
                     name: "Wall Push-Ups",
-                    duration: 0.05
+                    duration: 5
                 },
                 {
                     id: "fbs-4",
                     name: "Standing Knee Raises",
-                    duration: 0.05
+                    duration: 5
                 },
                 {
                     id: "fbs-5",
                     name: "Glute Bridges",
-                    duration: 0.05
+                    duration: 5
                 },
                 {
                     id: "fbs-6",
                     name: "Standing Calf Raises",
-                    duration: 0.05
+                    duration: 5
                 }
             ]
         },
