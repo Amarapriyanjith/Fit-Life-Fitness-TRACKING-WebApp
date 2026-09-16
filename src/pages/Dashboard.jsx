@@ -241,51 +241,66 @@ useEffect(() => {
                     }
 
 
-                    // Get the latest workout plan
+                        // Get workout plans
+                        const workoutPlansRef = collection(
+                            db,
+                            "users",
+                            user.uid,
+                            "workoutPlans"
+                        );
 
-                    const workoutPlansRef = collection(
-                        db,
-                        "users",
-                        user.uid,
-                        "workoutPlans"
-                    );
+                        const workoutSnapshot =
+                            await getDocs(workoutPlansRef);
 
+                        if (!workoutSnapshot.empty) {
 
-                    const workoutQuery = query(
-                        workoutPlansRef,
-                        orderBy("addedAt", "desc"),
-                        
-                    );
+                            const workoutPlans =
+                                workoutSnapshot.docs.map((workoutDoc) => ({
+                                    id: workoutDoc.id,
+                                    ...workoutDoc.data()
+                                }));
 
+                            // Sort workouts by added date
+                            workoutPlans.sort((a, b) => {
 
-                    const workoutSnapshot = await getDocs(
-                        workoutQuery
-                    );
+                                const dateA =
+                                    a.addedAt?.toMillis?.() || 0;
 
+                                const dateB =
+                                    b.addedAt?.toMillis?.() || 0;
 
-                    if (!workoutSnapshot.empty) {
+                                return dateB - dateA;
+                            });
 
-                        const workoutData = {
-                            id: workoutSnapshot.docs[0].id,
-                            ...workoutSnapshot.docs[0].data()
-                        };
+                            // Get the latest selected workout
+                            const latestWorkout =
+                                workoutPlans[0];
 
-                        setWorkout(workoutData);
-                        setWorkoutCompleted(workoutData.completed === true);
+                            setWorkout(
+                                latestWorkout
+                            );
 
-                        const completedCount = workoutSnapshot.docs.filter(
-                            (doc) => doc.data().completed === true
-                        ).length;
+                            // Check whether the selected workout is completed
+                            const isCompleted =
+                                latestWorkout.completed === true;
 
-                        setCompletedWorkouts(completedCount);
+                            setWorkoutCompleted(
+                                isCompleted
+                            );
 
-                       
+                            // Dashboard shows 1 when the selected workout is completed
+                            setCompletedWorkouts(
+                                isCompleted ? 1 : 0
+                            );
 
-                    } else {
+                        } else {
 
-                        setWorkout(null);
+                            setWorkout(null);
 
-                    }
+                            setWorkoutCompleted(false);
+
+                            setCompletedWorkouts(0);
+                        }
 
                 } catch (error) {
 
@@ -419,50 +434,6 @@ useEffect(() => {
 
         }
     };
-
-    // Mark workout as complete
-
-                const completeWorkout = async () => {
-
-                    const user = auth.currentUser;
-
-                    if (!user || !workout) {
-                        return;
-                    }
-
-                    try {
-
-                        const workoutRef = doc(
-                            db,
-                            "users",
-                            user.uid,
-                            "workoutPlans",
-                            workout.id
-                        );
-
-                        await setDoc(
-                            workoutRef,
-                            {
-                                completed: true,
-                                completedAt: serverTimestamp()
-                            },
-                            {
-                                merge: true
-                            }
-                        );
-
-                        setWorkoutCompleted(true);
-
-                    } catch (error) {
-
-                        console.error(
-                            "Error completing workout:",
-                            error
-                        );
-
-                    }
-                };
-
 
     if (loading) {
         return (
@@ -644,19 +615,29 @@ useEffect(() => {
                                             </div>
 
 
-                                                <button
-                                                    onClick={completeWorkout}
-                                                    disabled={workoutCompleted}
-                                                >
-                                                    {workoutCompleted ? "Completed ✓" : "Complete"}
-                                                </button>
+                                                {workoutCompleted ? (
 
-                                                {workoutCompleted && (
-                                                <small style={{ color: "#18b981", fontWeight: "600" }}>
-                                                    Great job! Workout completed today 🎉
-                                                </small>
-                                            )}
+                                                    <button
+                                                        className="btn small-btn"
+                                                        disabled
+                                                    >
+                                                        Completed ✓
+                                                    </button>
 
+                                                ) : (
+
+                                                    <button
+                                                        className="btn small-btn"
+                                                        onClick={() =>
+                                                            navigate(
+                                                                `/workouts/${workout.id}`
+                                                            )
+                                                        }
+                                                    >
+                                                        Continue Workout →
+                                                    </button>
+
+                                                )}
                                             <p style={{ marginTop: "10px", fontWeight: "600" }}>
                                             Workouts completed: {completedWorkouts}
                                             </p>

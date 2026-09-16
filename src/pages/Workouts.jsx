@@ -1,182 +1,565 @@
 import React, { useState } from "react";
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import {
+    addDoc,
+    collection,
+    serverTimestamp
+} from "firebase/firestore";
 import { auth, db } from "../firebase";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
-// Predefined workout data categorized by fitness levels matching your design screenshots
+// Workout data
 const workoutData = {
+
+    // Beginner workouts
     beginner: [
+
         {
-            icon: "🚶‍♂️",
+            icon: "🏃",
             title: "Full Body Starter",
-            desc: "20 min • 6 exercises",
-            tag: "Easy"
+            desc: "A simple full-body workout designed for beginners.",
+            tag: "30 MINS",
+
+            exercises: [
+                {
+                    id: "fbs-1",
+                    name: "Marching in Place",
+                    duration: 0.05
+                },
+                {
+                    id: "fbs-2",
+                    name: "Bodyweight Squats",
+                    duration: 0.05
+                },
+                {
+                    id: "fbs-3",
+                    name: "Wall Push-Ups",
+                    duration: 0.05
+                },
+                {
+                    id: "fbs-4",
+                    name: "Standing Knee Raises",
+                    duration: 0.05
+                },
+                {
+                    id: "fbs-5",
+                    name: "Glute Bridges",
+                    duration: 0.05
+                },
+                {
+                    id: "fbs-6",
+                    name: "Standing Calf Raises",
+                    duration: 0.05
+                }
+            ]
         },
+
         {
             icon: "🧘",
             title: "Mobility & Stretch",
-            desc: "15 min • 5 exercises",
-            tag: "Recovery"
+            desc: "Gentle movements and stretches to improve flexibility and mobility.",
+            tag: "30 MINS",
+
+            exercises: [
+                {
+                    id: "mas-1",
+                    name: "Neck Stretch",
+                    duration: 5
+                },
+                {
+                    id: "mas-2",
+                    name: "Shoulder Rolls",
+                    duration: 5
+                },
+                {
+                    id: "mas-3",
+                    name: "Arm Circles",
+                    duration: 5
+                },
+                {
+                    id: "mas-4",
+                    name: "Torso Rotation",
+                    duration: 5
+                },
+                {
+                    id: "mas-5",
+                    name: "Hip Circles",
+                    duration: 5
+                },
+                {
+                    id: "mas-6",
+                    name: "Hamstring Stretch",
+                    duration: 5
+                }
+            ]
         },
+
         {
-            icon: "🏋️‍♂️",
+            icon: "💪",
             title: "Beginner Strength",
-            desc: "25 min • 7 exercises",
-            tag: "Low impact"
+            desc: "Build basic strength using simple bodyweight exercises.",
+            tag: "30 MINS",
+
+            exercises: [
+                {
+                    id: "bgs-1",
+                    name: "Bodyweight Squats",
+                    duration: 5
+                },
+                {
+                    id: "bgs-2",
+                    name: "Wall Push-Ups",
+                    duration: 5
+                },
+                {
+                    id: "bgs-3",
+                    name: "Glute Bridges",
+                    duration: 5
+                },
+                {
+                    id: "bgs-4",
+                    name: "Chair Squats",
+                    duration: 5
+                },
+                {
+                    id: "bgs-5",
+                    name: "Bird Dog",
+                    duration: 5
+                },
+                {
+                    id: "bgs-6",
+                    name: "Standing Calf Raises",
+                    duration: 5
+                }
+            ]
         }
     ],
 
+    // Intermediate workouts
     intermediate: [
+
         {
-            icon: "🏃‍♂️",
+            icon: "🔥",
             title: "Full Body Burn",
-            desc: "35 min • 8 exercises",
-            tag: "Moderate"
+            desc: "A balanced workout combining strength and cardio movements.",
+            tag: "30 MINS",
+
+            exercises: [
+                {
+                    id: "fbb-1",
+                    name: "Jumping Jacks",
+                    duration: 5
+                },
+                {
+                    id: "fbb-2",
+                    name: "Bodyweight Squats",
+                    duration: 5
+                },
+                {
+                    id: "fbb-3",
+                    name: "Push-Ups",
+                    duration: 5
+                },
+                {
+                    id: "fbb-4",
+                    name: "Reverse Lunges",
+                    duration: 5
+                },
+                {
+                    id: "fbb-5",
+                    name: "Mountain Climbers",
+                    duration: 5
+                },
+                {
+                    id: "fbb-6",
+                    name: "Plank",
+                    duration: 5
+                }
+            ]
         },
+
         {
             icon: "💪",
             title: "Upper Body Focus",
-            desc: "30 min • 7 exercises",
-            tag: "Strength"
+            desc: "Strengthen your chest, shoulders, arms and upper back.",
+            tag: "30 MINS",
+
+            exercises: [
+                {
+                    id: "ubf-1",
+                    name: "Push-Ups",
+                    duration: 5
+                },
+                {
+                    id: "ubf-2",
+                    name: "Shoulder Taps",
+                    duration: 5
+                },
+                {
+                    id: "ubf-3",
+                    name: "Tricep Dips",
+                    duration: 5
+                },
+                {
+                    id: "ubf-4",
+                    name: "Plank",
+                    duration: 5
+                },
+                {
+                    id: "ubf-5",
+                    name: "Pike Push-Ups",
+                    duration: 5
+                },
+                {
+                    id: "ubf-6",
+                    name: "Superman",
+                    duration: 5
+                }
+            ]
         },
+
         {
-            icon: "🦵",
+            icon: "🏋️",
             title: "Lower Body Power",
-            desc: "32 min • 8 exercises",
-            tag: "Strength"
+            desc: "Develop strength and power in your legs and lower body.",
+            tag: "30 MINS",
+
+            exercises: [
+                {
+                    id: "lbp-1",
+                    name: "Squats",
+                    duration: 5
+                },
+                {
+                    id: "lbp-2",
+                    name: "Reverse Lunges",
+                    duration: 5
+                },
+                {
+                    id: "lbp-3",
+                    name: "Glute Bridges",
+                    duration: 5
+                },
+                {
+                    id: "lbp-4",
+                    name: "Jump Squats",
+                    duration: 5
+                },
+                {
+                    id: "lbp-5",
+                    name: "Calf Raises",
+                    duration: 5
+                },
+                {
+                    id: "lbp-6",
+                    name: "Wall Sit",
+                    duration: 5
+                }
+            ]
         }
     ],
 
+    // Advanced workouts
     advanced: [
+
         {
             icon: "🔥",
             title: "HIIT Challenge",
-            desc: "40 min • 10 exercises",
-            tag: "High intensity"
+            desc: "A high-intensity workout combining explosive cardio movements.",
+            tag: "30 MINS",
+
+            exercises: [
+                {
+                    id: "hic-1",
+                    name: "Burpees",
+                    duration: 5
+                },
+                {
+                    id: "hic-2",
+                    name: "Jump Squats",
+                    duration: 5
+                },
+                {
+                    id: "hic-3",
+                    name: "Mountain Climbers",
+                    duration: 5
+                },
+                {
+                    id: "hic-4",
+                    name: "High Knees",
+                    duration: 5
+                },
+                {
+                    id: "hic-5",
+                    name: "Plank Jacks",
+                    duration: 5
+                },
+                {
+                    id: "hic-6",
+                    name: "Skater Jumps",
+                    duration: 5
+                }
+            ]
         },
+
+        {
+            icon: "🏋️",
+            title: "Strength Circuit",
+            desc: "A challenging circuit focused on full-body strength development.",
+            tag: "30 MINS",
+
+            exercises: [
+                {
+                    id: "sc-1",
+                    name: "Goblet Squats",
+                    duration: 5
+                },
+                {
+                    id: "sc-2",
+                    name: "Push-Ups",
+                    duration: 5
+                },
+                {
+                    id: "sc-3",
+                    name: "Dumbbell Rows",
+                    duration: 5
+                },
+                {
+                    id: "sc-4",
+                    name: "Walking Lunges",
+                    duration: 5
+                },
+                {
+                    id: "sc-5",
+                    name: "Shoulder Press",
+                    duration: 5
+                },
+                {
+                    id: "sc-6",
+                    name: "Plank to Push-Up",
+                    duration: 5
+                }
+            ]
+        },
+
         {
             icon: "⚡",
-            title: "Strength Circuit",
-            desc: "45 min • 9 exercises",
-            tag: "Advanced"
-        },
-        {
-            icon: "🏆",
             title: "Athletic Conditioning",
-            desc: "50 min • 12 exercises",
-            tag: "Expert"
+            desc: "Advanced movements designed to improve endurance, speed and conditioning.",
+            tag: "30 MINS",
+
+            exercises: [
+                {
+                    id: "ac-1",
+                    name: "Sprint in Place",
+                    duration: 5
+                },
+                {
+                    id: "ac-2",
+                    name: "Box Jumps",
+                    duration: 5
+                },
+                {
+                    id: "ac-3",
+                    name: "Burpees",
+                    duration: 5
+                },
+                {
+                    id: "ac-4",
+                    name: "Lateral Bounds",
+                    duration: 5
+                },
+                {
+                    id: "ac-5",
+                    name: "Mountain Climbers",
+                    duration: 5
+                },
+                {
+                    id: "ac-6",
+                    name: "High Knees",
+                    duration: 5
+                }
+            ]
         }
     ]
 };
 
+// Workouts page
 export default function Workouts() {
-    // State to track the currently selected fitness level tab ("beginner" by default)
+
     const [level, setLevel] = useState("beginner");
-    
-    // State to handle feedback messages shown to the user (success/error alerts)
+
     const [message, setMessage] = useState("");
 
-    // State to keep track of which specific workout card is currently saving/loading
-    const [savingTitle, setSavingTitle] = useState(null);
+    const [savingWorkout, setSavingWorkout] =
+        useState(null);
 
-    // Function to handle saving a selected workout directly to the logged-in user's Firebase Firestore plan
-    const handleAddToPlan = async (item) => {
+    const navigate = useNavigate();
+
+    // Add workout to user's plan
+    const handleAddWorkout = async (item) => {
+
         const user = auth.currentUser;
 
-        // Guard clause: Make sure the user is authenticated before writing to the database
         if (!user) {
-            setMessage("Please log in to add a workout to your plan.");
+
+            setMessage(
+                "Please log in to add a workout."
+            );
+
             return;
         }
 
-        // Set the active loading state for this specific card and clear old messages
-        setSavingTitle(item.title); 
-        setMessage("");
-
         try {
-            // Push the workout details into the user's personal sub-collection in Firestore
-            await addDoc(
-                collection(db, "users", user.uid, "workoutPlans"),
+
+            setSavingWorkout(item.title);
+
+            setMessage("");
+
+            // Save workout plan to Firestore
+            const workoutRef = await addDoc(
+                collection(
+                    db,
+                    "users",
+                    user.uid,
+                    "workoutPlans"
+                ),
                 {
                     workoutName: item.title,
+
                     level: level,
-                    duration: item.desc,
-                    tag: item.tag,
-                    addedAt: serverTimestamp() // Automatically capture server time
+
+                    duration: item.tag,
+
+                    description: item.desc,
+
+                    exercises: item.exercises,
+
+                    completedExercises: [],
+
+                    completed: false,
+
+                    addedAt: serverTimestamp()
                 }
             );
 
-            // Notify the user of success
-            setMessage(`${item.title} added to your plan successfully!`);
-        } catch (error) {
-            console.error("Error adding workout:", error);
-            setMessage("Workout could not be added. Please try again.");
-        }
+            // Open workout details
+            navigate(
+                `/workouts/${workoutRef.id}`
+            );
 
-        // Reset the loading state back to normal once the async operation finishes
-        setSavingTitle(null);
+        } catch (error) {
+
+            console.error(
+                "Error adding workout:",
+                error
+            );
+
+            setMessage(
+                "Workout could not be added. Please try again."
+            );
+
+        } finally {
+
+            setSavingWorkout(null);
+
+        }
     };
 
     return (
+
         <div>
+
             <main>
-                {/* Hero Header Section */}
+
+                {/* Hero section */}
+
                 <section className="page-hero">
+
                     <div className="container">
+
                         <div className="eyebrow">
                             MOVE WITH CONFIDENCE
                         </div>
+
                         <h1>
                             Workouts that meet
                             <br />
+
                             <span>
                                 you where you are.
                             </span>
                         </h1>
+
                         <p>
                             Start small, learn the movements,
                             and build consistency. Select a
-                            fitness level to explore a sample plan.
+                            fitness level to explore a workout plan.
                         </p>
+
                     </div>
+
                 </section>
 
-                {/* Workout Selection & Cards Section */}
+
+                {/* Workout section */}
+
                 <section className="section">
+
                     <div className="container">
-                        
-                        {/* Tab Switchers for Fitness Levels */}
+
+
+                        {/* Level tabs */}
+
                         <div className="tabs">
+
                             <button
                                 className={`tab ${
-                                    level === "beginner" ? "active" : ""
+                                    level === "beginner"
+                                        ? "active"
+                                        : ""
                                 }`}
-                                onClick={() => setLevel("beginner")}
+                                onClick={() =>
+                                    setLevel("beginner")
+                                }
                             >
                                 Beginner
                             </button>
 
+
                             <button
                                 className={`tab ${
-                                    level === "intermediate" ? "active" : ""
+                                    level === "intermediate"
+                                        ? "active"
+                                        : ""
                                 }`}
-                                onClick={() => setLevel("intermediate")}
+                                onClick={() =>
+                                    setLevel("intermediate")
+                                }
                             >
                                 Intermediate
                             </button>
 
+
                             <button
                                 className={`tab ${
-                                    level === "advanced" ? "active" : ""
+                                    level === "advanced"
+                                        ? "active"
+                                        : ""
                                 }`}
-                                onClick={() => setLevel("advanced")}
+                                onClick={() =>
+                                    setLevel("advanced")
+                                }
                             >
                                 Advanced
                             </button>
+
                         </div>
 
-                        {/* Conditional Alert Message Banner */}
+
+                        {/* Message */}
+
                         {message && (
+
                             <div
                                 style={{
                                     marginBottom: "20px",
@@ -189,68 +572,104 @@ export default function Workouts() {
                             >
                                 {message}
                             </div>
+
                         )}
 
-                        {/* Dynamic Grid Rendering Workouts Based on Current Tab */}
+
+                        {/* Workout cards */}
+
                         <div
                             className="workout-grid"
                             id="workoutGrid"
                         >
-                            {workoutData[level].map((item, index) => (
-                                <div
-                                    className="workout"
-                                    key={index}
-                                    style={{
-                                        display: "flex",
-                                        flexDirection: "column",
-                                        height: "100%",
-                                        position: "relative"
-                                    }}
-                                >
-                                    {/* Top row containing Icon and Small Tag (like Easy, Moderate, High intensity) */}
-                                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "15px" }}>
-                                        <div className="w-icon" style={{ fontSize: "28px", margin: 0 }}>
+
+                            {workoutData[level].map(
+                                (item, index) => (
+
+                                    <div
+                                        className="workout"
+                                        key={index}
+                                    >
+
+                                        <div className="w-icon">
                                             {item.icon}
                                         </div>
-                                        <span className="tag" style={{ background: "#eff6ff", color: "#2563eb", padding: "4px 12px", borderRadius: "20px", fontSize: "12px", fontWeight: "600" }}>
+
+
+                                        <h3>
+                                            {item.title}
+                                        </h3>
+
+
+                                        <p>
+                                            {item.desc}
+                                        </p>
+
+
+                                        <span className="tag">
                                             {item.tag}
                                         </span>
+
+
+                                        <small
+                                            style={{
+                                                display: "block",
+                                                marginTop: "10px",
+                                                color: "var(--muted)"
+                                            }}
+                                        >
+                                            {item.exercises.length}
+                                            {" "}
+                                            exercises
+                                        </small>
+
+
+                                        <button
+                                            className="btn primary"
+                                            onClick={() =>
+                                                handleAddWorkout(
+                                                    item
+                                                )
+                                            }
+                                            disabled={
+                                                savingWorkout ===
+                                                item.title
+                                            }
+                                            style={{
+                                                marginTop: "15px",
+                                                width: "100%"
+                                            }}
+                                        >
+
+                                            {savingWorkout ===
+                                            item.title
+                                                ? "Opening..."
+                                                : "View Workout →"}
+
+                                        </button>
+
                                     </div>
 
-                                    <h3 style={{ marginBottom: "8px" }}>
-                                        {item.title}
-                                    </h3>
-                                    
-                                    <p style={{ flexGrow: 1, color: "#64748b", fontSize: "14px", marginBottom: "20px" }}>
-                                        {item.desc}
-                                    </p>
+                                )
+                            )}
 
-                                    {/* Add to Plan Action Button */}
-                                    <button
-                                        className="btn primary"
-                                        onClick={() => handleAddToPlan(item)}
-                                        disabled={savingTitle === item.title} 
-                                        style={{
-                                            marginTop: "auto",
-                                            width: "100%"
-                                        }}
-                                    >
-                                        {savingTitle === item.title
-                                            ? "Saving..."
-                                            : "Add to plan →"}
-                                    </button>
-                                </div>
-                            ))}
                         </div>
+
                     </div>
+
                 </section>
 
-                {/* Bottom Call to Action Section */}
+
+                {/* Bottom call-to-action section */}
+
                 <section className="dark-section">
+
                     <div className="container cta-center">
+
                         <div className="eyebrow">
                             READY?
                         </div>
+
                         <h2>
                             Your first workout can start{" "}
                             <span>
@@ -258,37 +677,20 @@ export default function Workouts() {
                             </span>
                         </h2>
 
+
                         <Link
                             className="btn light"
                             to="/dashboard"
                         >
                             Open My Dashboard →
                         </Link>
+
                     </div>
+
                 </section>
+
             </main>
 
-            {/* Site Footer */}
-            <footer>
-                <div className="container footer">
-                    <div className="brand">
-                        <span className="brand-mark">
-                            F
-                        </span>
-                        <span>
-                            Fit<span>Life</span>
-                        </span>
-                    </div>
-
-                    <p>
-                        Smart personalized fitness for beginners.
-                    </p>
-
-                    <small>
-                        © 2026 FitLife Project
-                    </small>
-                </div>
-            </footer>
         </div>
     );
 }
