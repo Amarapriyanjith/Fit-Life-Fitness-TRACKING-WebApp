@@ -63,32 +63,32 @@ const workoutData = {
                 {
                     id: "mas-1",
                     name: "Neck Stretch",
-                    duration: 5
+                    duration: 0.05
                 },
                 {
                     id: "mas-2",
                     name: "Shoulder Rolls",
-                    duration: 5
+                    duration: 0.05
                 },
                 {
                     id: "mas-3",
                     name: "Arm Circles",
-                    duration: 5
+                    duration: 0.05
                 },
                 {
                     id: "mas-4",
                     name: "Torso Rotation",
-                    duration: 5
+                    duration: 0.05
                 },
                 {
                     id: "mas-5",
                     name: "Hip Circles",
-                    duration: 5
+                    duration: 0.05
                 },
                 {
                     id: "mas-6",
                     name: "Hamstring Stretch",
-                    duration: 5
+                    duration: 0.05
                 }
             ]
         },

@@ -25,6 +25,25 @@ export default function WorkoutDetails() {
 
     const navigate = useNavigate();
 
+        // Get today's date
+    const getTodayKey = () => {
+
+        const now = new Date();
+
+        const offset =
+            now.getTimezoneOffset();
+
+        const localDate =
+            new Date(
+                now.getTime() -
+                offset * 60000
+            );
+
+        return localDate
+            .toISOString()
+            .slice(0, 10);
+    };
+
 
     const [workout, setWorkout] = useState(null);
 
@@ -430,7 +449,9 @@ export default function WorkoutDetails() {
                 {
                     completed: true,
                     completedAt:
-                        serverTimestamp()
+                        serverTimestamp(),
+                    completedDate:
+                        getTodayKey()
                 },
                 {
                     merge: true

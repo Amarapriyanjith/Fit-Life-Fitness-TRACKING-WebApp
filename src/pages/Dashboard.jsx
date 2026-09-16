@@ -288,9 +288,19 @@ useEffect(() => {
                                 isCompleted
                             );
 
-                            // Dashboard shows 1 when the selected workout is completed
+                            // Count workouts completed today
+
+                            const today = getTodayKey();
+
+                            const completedCount =
+                                workoutPlans.filter(
+                                    (item) =>
+                                        item.completed === true &&
+                                        item.completedDate === today
+                                ).length;
+
                             setCompletedWorkouts(
-                                isCompleted ? 1 : 0
+                                completedCount
                             );
 
                         } else {
