@@ -31,7 +31,7 @@ function Register() {
             console.error(err);
             if (err.code === 'auth/email-already-in-use') {
                 setError("This email is already registered! Please log in instead.");
-                alert("මෙම විද්‍යුත් තැපැල් ලිපිනය (Email) දැනටමත් භාවිතා කර ඇත. කරුණාකර Login වන්න.");
+                alert("This email address is already in use. Please log in.");
             } else if (err.code === 'auth/weak-password') {
                 setError("Password should be at least 6 characters long.");
             } else {
