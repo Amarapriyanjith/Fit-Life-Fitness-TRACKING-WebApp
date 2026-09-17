@@ -7,7 +7,9 @@ import {
 import { auth, db } from "../firebase";
 import { Link, useNavigate } from "react-router-dom";
 
-// Workout data
+import workoutBg from "../assets/images/warm-up-sets.jpg";
+
+// Workout data categorized by fitness level
 const workoutData = {
 
     // Beginner workouts
@@ -388,37 +390,38 @@ exercises: [
     ]
 };
 
-// Workouts page
+// Workouts page component
 export default function Workouts() {
 
     const [level, setLevel] = useState("beginner");
-
     const [message, setMessage] = useState("");
-
-    const [savingWorkout, setSavingWorkout] =
-        useState(null);
+    const [savingWorkout, setSavingWorkout] = useState(null);
 
     const navigate = useNavigate();
 
-    // Add workout to user's plan
+    // Add selected workout to user's plan with caching and seamless navigation
     const handleAddWorkout = async (item) => {
-
         const user = auth.currentUser;
 
         if (!user) {
-
-            setMessage(
-                "Please log in to add a workout."
-            );
-
+            setMessage("Please log in to add a workout.");
             return;
         }
 
         try {
-
             setSavingWorkout(item.title);
-
             setMessage("");
+
+            const workoutPayload = {
+                workoutName: item.title,
+                level: level,
+                duration: item.tag,
+                description: item.desc,
+                exercises: item.exercises,
+                completedExercises: [],
+                completed: false,
+                addedAt: serverTimestamp()
+            };
 
             // Save workout plan to Firestore
             const workoutRef = await addDoc(
@@ -428,59 +431,60 @@ export default function Workouts() {
                     user.uid,
                     "workoutPlans"
                 ),
-                {
-                    workoutName: item.title,
-
-                    level: level,
-
-                    duration: item.tag,
-
-                    description: item.desc,
-
-                    exercises: item.exercises,
-
-                    completedExercises: [],
-
-                    completed: false,
-
-                    addedAt: serverTimestamp()
-                }
+                workoutPayload
             );
 
-            // Open workout details
-            navigate(
-                `/workouts/${workoutRef.id}`
-            );
+            // Cache the active workout locally for instant retrieval in detail view
+            localStorage.setItem(`fitlife_cache_workout_${workoutRef.id}`, JSON.stringify({
+                id: workoutRef.id,
+                ...workoutPayload,
+                addedAt: new Date().toISOString()
+            }));
+
+            // Navigate directly to workout details page
+            navigate(`/workouts/${workoutRef.id}`);
 
         } catch (error) {
-
-            console.error(
-                "Error adding workout:",
-                error
-            );
-
-            setMessage(
-                "Workout could not be added. Please try again."
-            );
-
-        } finally {
-
+            console.error("Error adding workout:", error);
+            setMessage("Workout could not be added. Please try again.");
             setSavingWorkout(null);
-
         }
     };
 
     return (
-
         <div>
-
             <main>
 
-                {/* Hero section */}
+                {/* Hero section with Right Background Image and Left Fade */}
+                <section 
+                    className="page-hero"
+                    style={{
+                        position: "relative",
+                        overflow: "hidden",
+                        minHeight: "260px",
+                        display: "flex",
+                        alignItems: "center"
+                    }}
+                >
+                    {/* Background shaded image */}
+                    <div 
+                        style={{
+                            position: "absolute",
+                            top: 0,
+                            right: 0,
+                            width: "55%",
+                            height: "100%",
+                            backgroundImage: `url(${workoutBg})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                            WebkitMaskImage: "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,1) 100%)",
+                            maskImage: "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,1) 100%)",
+                            pointerEvents: "none",
+                            zIndex: 1
+                        }} 
+                    />
 
-                <section className="page-hero">
-
-                    <div className="container">
+                    <div className="container" style={{ position: "relative", zIndex: 2 }}>
 
                         <div className="eyebrow">
                             MOVE WITH CONFIDENCE
@@ -489,47 +493,36 @@ export default function Workouts() {
                         <h1>
                             Workouts that meet
                             <br />
-
                             <span>
                                 you where you are.
                             </span>
                         </h1>
 
-                        <p>
+                        <p style={{ maxWidth: "560px" }}>
                             Start small, learn the movements,
                             and build consistency. Select a
                             fitness level to explore a workout plan.
                         </p>
 
                     </div>
-
                 </section>
 
-
                 {/* Workout section */}
-
                 <section className="section">
-
                     <div className="container">
 
-
                         {/* Level tabs */}
-
                         <div className="tabs">
-
                             <button
                                 className={`tab ${
                                     level === "beginner"
                                         ? "active"
                                         : ""
                                 }`}
-                                onClick={() =>
-                                    setLevel("beginner")
-                                }
+                                onClick={() => setLevel("beginner")}
                             >
                                 Beginner
                             </button>
-
 
                             <button
                                 className={`tab ${
@@ -537,13 +530,10 @@ export default function Workouts() {
                                         ? "active"
                                         : ""
                                 }`}
-                                onClick={() =>
-                                    setLevel("intermediate")
-                                }
+                                onClick={() => setLevel("intermediate")}
                             >
                                 Intermediate
                             </button>
-
 
                             <button
                                 className={`tab ${
@@ -551,20 +541,14 @@ export default function Workouts() {
                                         ? "active"
                                         : ""
                                 }`}
-                                onClick={() =>
-                                    setLevel("advanced")
-                                }
+                                onClick={() => setLevel("advanced")}
                             >
                                 Advanced
                             </button>
-
                         </div>
 
-
-                        {/* Message */}
-
+                        {/* Message notification */}
                         {message && (
-
                             <div
                                 style={{
                                     marginBottom: "20px",
@@ -577,98 +561,66 @@ export default function Workouts() {
                             >
                                 {message}
                             </div>
-
                         )}
 
-
                         {/* Workout cards */}
-
                         <div
                             className="workout-grid"
                             id="workoutGrid"
                         >
-
-                            {workoutData[level].map(
-                                (item, index) => (
-
-                                    <div
-                                        className="workout"
-                                        key={index}
-                                    >
-
-                                        <div className="w-icon">
-                                            {item.icon}
-                                        </div>
-
-
-                                        <h3>
-                                            {item.title}
-                                        </h3>
-
-
-                                        <p>
-                                            {item.desc}
-                                        </p>
-
-
-                                        <span className="tag">
-                                            {item.tag}
-                                        </span>
-
-
-                                        <small
-                                            style={{
-                                                display: "block",
-                                                marginTop: "10px",
-                                                color: "var(--muted)"
-                                            }}
-                                        >
-                                            {item.exercises.length}
-                                            {" "}
-                                            exercises
-                                        </small>
-
-
-                                        <button
-                                            className="btn primary"
-                                            onClick={() =>
-                                                handleAddWorkout(
-                                                    item
-                                                )
-                                            }
-                                            disabled={
-                                                savingWorkout ===
-                                                item.title
-                                            }
-                                            style={{
-                                                marginTop: "15px",
-                                                width: "100%"
-                                            }}
-                                        >
-
-                                            {savingWorkout ===
-                                            item.title
-                                                ? "Opening..."
-                                                : "View Workout →"}
-
-                                        </button>
-
+                            {workoutData[level].map((item, index) => (
+                                <div
+                                    className="workout"
+                                    key={index}
+                                >
+                                    <div className="w-icon">
+                                        {item.icon}
                                     </div>
 
-                                )
-                            )}
+                                    <h3>
+                                        {item.title}
+                                    </h3>
 
+                                    <p>
+                                        {item.desc}
+                                    </p>
+
+                                    <span className="tag">
+                                        {item.tag}
+                                    </span>
+
+                                    <small
+                                        style={{
+                                            display: "block",
+                                            marginTop: "10px",
+                                            color: "var(--muted)"
+                                        }}
+                                    >
+                                        {item.exercises.length} exercises
+                                    </small>
+
+                                    <button
+                                        className="btn primary"
+                                        onClick={() => handleAddWorkout(item)}
+                                        disabled={savingWorkout === item.title}
+                                        style={{
+                                            marginTop: "15px",
+                                            width: "100%"
+                                        }}
+                                    >
+                                        {savingWorkout === item.title
+                                            ? "Opening..."
+                                            : "View Workout →"}
+                                    </button>
+                                </div>
+                            ))}
                         </div>
 
                     </div>
-
                 </section>
 
-
                 {/* Bottom call-to-action section */}
-
                 <section className="dark-section">
-
                     <div className="container cta-center">
 
                         <div className="eyebrow">
@@ -682,7 +634,6 @@ export default function Workouts() {
                             </span>
                         </h2>
 
-
                         <Link
                             className="btn light"
                             to="/dashboard"
@@ -691,11 +642,9 @@ export default function Workouts() {
                         </Link>
 
                     </div>
-
                 </section>
 
             </main>
-
         </div>
     );
 }
