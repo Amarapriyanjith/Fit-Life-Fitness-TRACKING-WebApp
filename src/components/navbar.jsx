@@ -3,20 +3,14 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../firebase";
 
-
 function Navbar() {
 
     const [menuOpen, setMenuOpen] = useState(false);
-
     const [user, setUser] = useState(null);
-
     const location = useLocation();
-
     const navigate = useNavigate();
 
-
     useEffect(() => {
-
         const unsubscribe = onAuthStateChanged(
             auth,
             (currentUser) => {
@@ -25,60 +19,55 @@ function Navbar() {
         );
 
         return () => unsubscribe();
-
     }, []);
 
-
     const closeMenu = () => {
-
         setMenuOpen(false);
-
     };
 
+    const handleLogout = async () => {
+        const confirmLogout = window.confirm(
+            "Are you sure you want to logout?"
+        );
 
-const handleLogout = async () => {
+        if (!confirmLogout) {
+            return;
+        }
 
-    const confirmLogout = window.confirm(
-        "Are you sure you want to logout?"
-    );
-
-    if (!confirmLogout) {
-        return;
-    }
-
-    try {
-        await signOut(auth);
-        closeMenu();
-        navigate("/");
-    } catch (error) {
-        console.error("Logout error:", error);
-    }
-};
-
+        try {
+            await signOut(auth);
+            closeMenu();
+            navigate("/");
+        } catch (error) {
+            console.error("Logout error:", error);
+        }
+    };
 
     return (
-
-        <header className="nav-wrap">
-
+        <header 
+            className="nav-wrap" 
+            style={{ 
+                borderBottom: "2px solid #000000", 
+                backgroundColor: "#ffffff",
+                position: "sticky",
+                top: 0,
+                zIndex: 1000
+            }}
+        >
             <nav className="nav container">
-
 
                 <Link
                     className="brand"
                     to="/"
                     onClick={closeMenu}
                 >
-
                     <span className="brand-mark">
                         F
                     </span>
-
                     <span>
                         Fit<span>Life</span>
                     </span>
-
                 </Link>
-
 
                 <button
                     className="menu"
@@ -86,19 +75,14 @@ const handleLogout = async () => {
                         setMenuOpen(!menuOpen)
                     }
                 >
-
                     ☰
-
                 </button>
-
 
                 <div
                     className={`nav-links ${
                         menuOpen ? "show" : ""
                     }`}
                 >
-
-
                     <Link
                         className={
                             location.pathname === "/"
@@ -110,7 +94,6 @@ const handleLogout = async () => {
                     >
                         Home
                     </Link>
-
 
                     <Link
                         className={
@@ -124,7 +107,6 @@ const handleLogout = async () => {
                         Workouts
                     </Link>
 
-
                     <Link
                         className={
                             location.pathname === "/nutrition"
@@ -136,7 +118,6 @@ const handleLogout = async () => {
                     >
                         Nutrition
                     </Link>
-
 
                     <Link
                         className={
@@ -150,7 +131,6 @@ const handleLogout = async () => {
                         Tracking
                     </Link>
 
-
                     <Link
                         className={
                             location.pathname === "/about"
@@ -163,11 +143,8 @@ const handleLogout = async () => {
                         About
                     </Link>
 
-
                     {!user ? (
-
                         <>
-
                             <Link
                                 className="nav-login"
                                 to="/login"
@@ -176,7 +153,6 @@ const handleLogout = async () => {
                                 Login
                             </Link>
 
-
                             <Link
                                 className="nav-signup"
                                 to="/register"
@@ -184,13 +160,9 @@ const handleLogout = async () => {
                             >
                                 Sign Up
                             </Link>
-
                         </>
-
                     ) : (
-
                         <>
-
                             <Link
                                 className="nav-dashboard"
                                 to="/dashboard"
@@ -199,16 +171,13 @@ const handleLogout = async () => {
                                 Dashboard
                             </Link>
 
-
                             <button
                                 className="nav-logout"
                                 onClick={handleLogout}
                             >
                                 Logout
                             </button>
-
                         </>
-
                     )}
 
                 </div>
@@ -216,10 +185,7 @@ const handleLogout = async () => {
             </nav>
 
         </header>
-
     );
-
 }
-
 
 export default Navbar;
