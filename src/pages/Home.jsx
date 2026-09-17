@@ -26,14 +26,29 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Hero visual card displaying daily stats and score */}
-          <div className="hero-card">
+          {/* Hero visual card displaying daily stats and score (Super Smooth Animated on hover) */}
+          <div 
+            className="hero-card" 
+            style={{ 
+              transition: 'transform 0.6s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.6s cubic-bezier(0.25, 1, 0.5, 1)', 
+              cursor: 'pointer',
+              willChange: 'transform, box-shadow'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-10px) scale(1.015) rotateX(2deg) rotateY(-2deg)';
+              e.currentTarget.style.boxShadow = '0 30px 60px rgba(0, 102, 255, 0.2)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0) scale(1) rotateX(0deg) rotateY(0deg)';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          >
             <div className="orb"></div>
             <div className="hero-stat">
               <small>YOUR DAILY SCORE</small>
               <strong>82<span>/100</span></strong>
               <div className="progress"><i style={{ width: '82%' }}></i></div>
-              <small>Great start — keep it going[cite: 7].</small>
+              <small>Great start — keep it going.</small>
             </div>
             <div className="float-card fc1">💧 <b>1.6L</b><small>Water today</small></div>
             <div className="float-card fc2">🔥 <b>420</b><small>Calories active</small></div>
