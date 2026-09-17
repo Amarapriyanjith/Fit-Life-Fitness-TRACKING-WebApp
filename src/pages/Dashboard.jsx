@@ -5,8 +5,6 @@ import {
     setDoc,
     serverTimestamp,
     collection,
-    query,
-    orderBy,
     getDocs
 } from "firebase/firestore";
 
@@ -20,21 +18,27 @@ function Dashboard() {
 
     const navigate = useNavigate();
 
-    const [userName, setUserName] = useState("");
+    const [userName, setUserName] = useState(() => localStorage.getItem("fitlife_cache_name") || "");
 
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(() => !localStorage.getItem("fitlife_cache_name"));
 
-    const [waterCount, setWaterCount] = useState(0);
+    const [waterCount, setWaterCount] = useState(() => Number(localStorage.getItem("fitlife_cache_water")) || 0);
 
-    const [calories, setCalories] = useState(0);
+    const [calories, setCalories] = useState(() => Number(localStorage.getItem("fitlife_cache_calories")) || 0);
 
-    const [bmi, setBmi] = useState(null);
+    const [bmi, setBmi] = useState(() => {
+        const saved = localStorage.getItem("fitlife_cache_bmi");
+        return saved ? JSON.parse(saved) : null;
+    });
 
-    const [workout, setWorkout] = useState(null);
+    const [workout, setWorkout] = useState(() => {
+        const saved = localStorage.getItem("fitlife_cache_workout");
+        return saved ? JSON.parse(saved) : null;
+    });
 
-    const [workoutCompleted, setWorkoutCompleted] = useState(false);
+    const [workoutCompleted, setWorkoutCompleted] = useState(() => localStorage.getItem("fitlife_cache_workoutCompleted") === "true");
 
-    const [completedWorkouts, setCompletedWorkouts] = useState(0);
+    const [completedWorkouts, setCompletedWorkouts] = useState(() => Number(localStorage.getItem("fitlife_cache_completedWorkouts")) || 0);
 
     const [notificationsEnabled, setNotificationsEnabled] =
         useState(
@@ -44,8 +48,7 @@ function Dashboard() {
         );
 
 
-    // Get today's date
-
+    // Get today's local date string (YYYY-MM-DD)
     const getTodayKey = () => {
 
         const now = new Date();
@@ -60,53 +63,55 @@ function Dashboard() {
     };
 
 
-useEffect(() => {
+    // Set up periodic reminders for notifications
+    useEffect(() => {
 
-    if (!notificationsEnabled) {
-        return;
-    }
-
-    const reminderTimer = setInterval(() => {
-
-        if (
-            "Notification" in window &&
-            Notification.permission === "granted"
-        ) {
-
-            if (waterCount < 8) {
-
-                new Notification("FitLife Water Reminder 💧", {
-                    body: `You have had ${waterCount} of 8 glasses today. Don't forget to drink water!`
-                });
-
-            } else if (calories < 600) {
-
-                new Notification("FitLife Calorie Reminder 🔥", {
-                    body: `You have tracked ${calories} of 600 kcal today. Don't forget to track your calories!`
-                });
-
-            } else if (!workoutCompleted) {
-
-                new Notification("FitLife Workout Reminder 🏃", {
-                    body: "You have not completed today's workout yet. You've got this! 💪"
-                });
-
-            } else {
-
-                new Notification("FitLife Daily Goals 🎉", {
-                    body: "Amazing! You've completed your main goals today. Keep it up! 🌟"
-                });
-
-            }
+        if (!notificationsEnabled) {
+            return;
         }
 
-    }, 1800000);
+        const reminderTimer = setInterval(() => {
 
-    return () => clearInterval(reminderTimer);
+            if (
+                "Notification" in window &&
+                Notification.permission === "granted"
+            ) {
 
-        }, [notificationsEnabled, waterCount,calories,workoutCompleted]);
+                if (waterCount < 8) {
+
+                    new Notification("FitLife Water Reminder 💧", {
+                        body: `You have had ${waterCount} of 8 glasses today. Don't forget to drink water!`
+                    });
+
+                } else if (calories < 600) {
+
+                    new Notification("FitLife Calorie Reminder 🔥", {
+                        body: `You have tracked ${calories} of 600 kcal today. Don't forget to track your calories!`
+                    });
+
+                } else if (!workoutCompleted) {
+
+                    new Notification("FitLife Workout Reminder 🏃", {
+                        body: "You have not completed today's workout yet. You've got this! 💪"
+                    });
+
+                } else {
+
+                    new Notification("FitLife Daily Goals 🎉", {
+                        body: "Amazing! You've completed your main goals today. Keep it up! 🌟"
+                    });
+
+                }
+            }
+
+        }, 1800000);
+
+        return () => clearInterval(reminderTimer);
+
+    }, [notificationsEnabled, waterCount, calories, workoutCompleted]);
 
 
+    // Fetch user dashboard data with LocalStorage Caching for instant load
     useEffect(() => {
 
         const unsubscribe = onAuthStateChanged(
@@ -124,215 +129,124 @@ useEffect(() => {
 
 
                 try {
+                    const today = getTodayKey();
+                    const userUid = user.uid;
 
-                    // Get user profile
+                    // Fetch all required documents and collections in parallel
+                    const [userDoc, waterDoc, calorieDoc, bmiDoc, workoutSnapshot] = await Promise.all([
+                        getDoc(doc(db, "users", userUid)),
+                        getDoc(doc(db, "users", userUid, "waterIntake", today)),
+                        getDoc(doc(db, "users", userUid, "calorieTracking", today)),
+                        getDoc(doc(db, "users", userUid, "healthData", "bmi")),
+                        getDocs(collection(db, "users", userUid, "workoutPlans"))
+                    ]);
 
-                    const userDocRef = doc(
-                        db,
-                        "users",
-                        user.uid
-                    );
-
-                    const userDoc = await getDoc(
-                        userDocRef
-                    );
-
-
+                    // Set and cache user profile details
                     if (userDoc.exists()) {
-
-                        const data = userDoc.data();
-
-                        setUserName(
-                            data.name || "User"
-                        );
+                        const name = userDoc.data().name || "User";
+                        setUserName(name);
+                        localStorage.setItem("fitlife_cache_name", name);
                     }
 
-
-                    // Get today's water intake
-
-                    const today = getTodayKey();
-
-                    const waterDocRef = doc(
-                        db,
-                        "users",
-                        user.uid,
-                        "waterIntake",
-                        today
-                    );
-
-                    const waterDoc = await getDoc(
-                        waterDocRef
-                    );
-
-
+                    // Handle today's water intake document
+                    const waterDocRef = doc(db, "users", userUid, "waterIntake", today);
                     if (waterDoc.exists()) {
-
-                        const data = waterDoc.data();
-
-                        setWaterCount(
-                            data.glasses || 0
-                        );
-
+                        const glasses = waterDoc.data().glasses || 0;
+                        setWaterCount(glasses);
+                        localStorage.setItem("fitlife_cache_water", glasses);
                     } else {
-
-                        await setDoc(
-                            waterDocRef,
-                            {
-                                glasses: 0,
-                                date: today,
-                                updatedAt: serverTimestamp()
-                            }
-                        );
+                        // Non-blocking background sync for default water doc
+                        setDoc(waterDocRef, {
+                            glasses: 0,
+                            date: today,
+                            updatedAt: serverTimestamp()
+                        }, { merge: true });
 
                         setWaterCount(0);
+                        localStorage.setItem("fitlife_cache_water", 0);
                     }
 
-                    // Get today's calories
-
-                    const calorieDocRef = doc(
-                        db,
-                        "users",
-                        user.uid,
-                        "calorieTracking",
-                        today
-                    );
-
-                    const calorieDoc = await getDoc(
-                        calorieDocRef
-                    );
-
+                    // Handle today's calorie tracking data
                     if (calorieDoc.exists()) {
-
-                        const calorieData = calorieDoc.data();
-
-                        setCalories(
-                            calorieData.calories || 0
-                        );
-
+                        const cal = calorieDoc.data().calories || 0;
+                        setCalories(cal);
+                        localStorage.setItem("fitlife_cache_calories", cal);
                     } else {
-
                         setCalories(0);
+                        localStorage.setItem("fitlife_cache_calories", 0);
                     }
 
-
-                    // Get BMI data
-
-                    const bmiDocRef = doc(
-                        db,
-                        "users",
-                        user.uid,
-                        "healthData",
-                        "bmi"
-                    );
-
-                    const bmiDoc = await getDoc(
-                        bmiDocRef
-                    );
-
+                    // Handle BMI records
                     if (bmiDoc.exists()) {
-
                         const bmiData = bmiDoc.data();
-
                         setBmi(bmiData);
+                        localStorage.setItem("fitlife_cache_bmi", JSON.stringify(bmiData));
+                    } else {
+                        setBmi(null);
+                        localStorage.removeItem("fitlife_cache_bmi");
+                    }
+
+                    // Handle workout plans and today's completion count
+                    if (!workoutSnapshot.empty) {
+                        const workoutPlans = workoutSnapshot.docs.map((workoutDoc) => ({
+                            id: workoutDoc.id,
+                            ...workoutDoc.data()
+                        }));
+
+                        // Sort workout plans by added date (newest first)
+                        workoutPlans.sort((a, b) => {
+                            const dateA = a.addedAt?.toMillis?.() || 0;
+                            const dateB = b.addedAt?.toMillis?.() || 0;
+                            return dateB - dateA;
+                        });
+
+                        // Select the latest workout plan
+                        const latestWorkout = workoutPlans[0];
+                        setWorkout(latestWorkout);
+                        localStorage.setItem("fitlife_cache_workout", JSON.stringify(latestWorkout));
+
+                        // Check if the latest workout is marked as completed
+                        const isCompleted = latestWorkout.completed === true;
+                        setWorkoutCompleted(isCompleted);
+                        localStorage.setItem("fitlife_cache_workoutCompleted", isCompleted);
+
+                        // Count the total workouts completed today
+                        const completedCount = workoutPlans.filter(
+                            (item) =>
+                                item.completed === true &&
+                                item.completedDate === today
+                        ).length;
+
+                        setCompletedWorkouts(completedCount);
+                        localStorage.setItem("fitlife_cache_completedWorkouts", completedCount);
 
                     } else {
-
-                        setBmi(null);
+                        setWorkout(null);
+                        setWorkoutCompleted(false);
+                        setCompletedWorkouts(0);
+                        localStorage.removeItem("fitlife_cache_workout");
+                        localStorage.setItem("fitlife_cache_workoutCompleted", "false");
+                        localStorage.setItem("fitlife_cache_completedWorkouts", "0");
                     }
-
-
-                        // Get workout plans
-                        const workoutPlansRef = collection(
-                            db,
-                            "users",
-                            user.uid,
-                            "workoutPlans"
-                        );
-
-                        const workoutSnapshot =
-                            await getDocs(workoutPlansRef);
-
-                        if (!workoutSnapshot.empty) {
-
-                            const workoutPlans =
-                                workoutSnapshot.docs.map((workoutDoc) => ({
-                                    id: workoutDoc.id,
-                                    ...workoutDoc.data()
-                                }));
-
-                            // Sort workouts by added date
-                            workoutPlans.sort((a, b) => {
-
-                                const dateA =
-                                    a.addedAt?.toMillis?.() || 0;
-
-                                const dateB =
-                                    b.addedAt?.toMillis?.() || 0;
-
-                                return dateB - dateA;
-                            });
-
-                            // Get the latest selected workout
-                            const latestWorkout =
-                                workoutPlans[0];
-
-                            setWorkout(
-                                latestWorkout
-                            );
-
-                            // Check whether the selected workout is completed
-                            const isCompleted =
-                                latestWorkout.completed === true;
-
-                            setWorkoutCompleted(
-                                isCompleted
-                            );
-
-                            // Count workouts completed today
-
-                            const today = getTodayKey();
-
-                            const completedCount =
-                                workoutPlans.filter(
-                                    (item) =>
-                                        item.completed === true &&
-                                        item.completedDate === today
-                                ).length;
-
-                            setCompletedWorkouts(
-                                completedCount
-                            );
-
-                        } else {
-
-                            setWorkout(null);
-
-                            setWorkoutCompleted(false);
-
-                            setCompletedWorkouts(0);
-                        }
 
                 } catch (error) {
-
                     console.error(
                         "Error loading dashboard:",
                         error
                     );
+                } finally {
+                    // Turn off loading state after data fetching completes or fails
+                    setLoading(false);
                 }
-
-
-                setLoading(false);
             }
         );
-
 
         return () => unsubscribe();
 
     }, []);
 
 
-    // Add one glass of water
-
+    // Add one glass of water instantly (Optimized for speed)
     const addWater = async () => {
 
         if (waterCount >= 8) {
@@ -348,6 +262,12 @@ useEffect(() => {
             return;
         }
 
+        // Instant UI update
+        const previousCount = waterCount;
+        const newWaterCount = waterCount + 1;
+        setWaterCount(newWaterCount);
+        localStorage.setItem("fitlife_cache_water", newWaterCount);
+
 
         try {
 
@@ -360,10 +280,6 @@ useEffect(() => {
                 "waterIntake",
                 today
             );
-
-
-            const newWaterCount =
-                waterCount + 1;
 
 
             await setDoc(
@@ -379,22 +295,19 @@ useEffect(() => {
             );
 
 
-            setWaterCount(
-                newWaterCount
-            );
-
-
         } catch (error) {
 
             console.error(
                 "Error saving water intake:",
                 error
             );
+            // Rollback state if background sync fails
+            setWaterCount(previousCount);
+            localStorage.setItem("fitlife_cache_water", previousCount);
         }
     };
 
-    // Remove one glass of water
-
+    // Remove one glass of water instantly (Optimized for speed)
     const removeWater = async () => {
 
         if (waterCount <= 0) {
@@ -407,6 +320,12 @@ useEffect(() => {
             return;
         }
 
+        // Instant UI update
+        const previousCount = waterCount;
+        const newWaterCount = waterCount - 1;
+        setWaterCount(newWaterCount);
+        localStorage.setItem("fitlife_cache_water", newWaterCount);
+
         try {
 
             const today = getTodayKey();
@@ -418,8 +337,6 @@ useEffect(() => {
                 "waterIntake",
                 today
             );
-
-            const newWaterCount = waterCount - 1;
 
             await setDoc(
                 waterDocRef,
@@ -433,19 +350,21 @@ useEffect(() => {
                 }
             );
 
-            setWaterCount(newWaterCount);
-
         } catch (error) {
 
             console.error(
                 "Error removing water intake:",
                 error
             );
+            // Rollback state if background sync fails
+            setWaterCount(previousCount);
+            localStorage.setItem("fitlife_cache_water", previousCount);
 
         }
     };
 
-    if (loading) {
+    // Show loading only on the very first visit if cache is empty
+    if (loading && !userName) {
         return (
             <main>
                 <section className="section">
@@ -542,11 +461,11 @@ useEffect(() => {
 
                                         <strong>
                                             {Math.round(
-                                            (waterCount / 8) * 30 +
-                                            Math.min(calories / 600, 1) * 30 +
-                                            (bmi ? 20 : 0) +
-                                            (workoutCompleted ? 20 : 0)
-                                        )}
+                                                (waterCount / 8) * 30 +
+                                                Math.min(calories / 600, 1) * 30 +
+                                                (bmi ? 20 : 0) +
+                                                (workoutCompleted ? 20 : 0)
+                                            )}
                                         </strong>
 
 
