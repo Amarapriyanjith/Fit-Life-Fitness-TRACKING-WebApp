@@ -13,6 +13,8 @@ import {
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "../firebase";
 
+import nutritionBg from "../assets/images/Nutrition.jpg";
+
 const mealData = [
     {
         type: "Breakfast",
@@ -299,8 +301,36 @@ function Nutrition() {
         <div>
             <main>
 
-                <section className="page-hero">
-                    <div className="container">
+                {/* Hero section with Right Background Image and Left Fade */}
+                <section 
+                    className="page-hero"
+                    style={{
+                        position: "relative",
+                        overflow: "hidden",
+                        minHeight: "260px",
+                        display: "flex",
+                        alignItems: "center"
+                    }}
+                >
+                    {/* Background shaded image */}
+                    <div 
+                        style={{
+                            position: "absolute",
+                            top: 0,
+                            right: 0,
+                            width: "55%",
+                            height: "100%",
+                            backgroundImage: `url(${nutritionBg})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                            WebkitMaskImage: "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,1) 100%)",
+                            maskImage: "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,1) 100%)",
+                            pointerEvents: "none",
+                            zIndex: 1
+                        }} 
+                    />
+
+                    <div className="container" style={{ position: "relative", zIndex: 2 }}>
 
                         <div className="eyebrow">
                             EAT BETTER
@@ -312,7 +342,7 @@ function Nutrition() {
                             <span>everyday progress.</span>
                         </h1>
 
-                        <p>
+                        <p style={{ maxWidth: "560px" }}>
                             Choose simple, beginner-friendly
                             meals and track your daily calories.
                         </p>

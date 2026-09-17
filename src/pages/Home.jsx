@@ -94,7 +94,6 @@ export default function Home() {
           </div>
           <div className="check-list">
             <div>✓ <span>Beginner-friendly exercise plans</span></div>
-            <div>✓ <span>Personalized guidance by fitness level</span></div>
             <div>✓ <span>BMI & health recommendations</span></div>
             <div>✓ <span>Water and calorie tracking</span></div>
             <div>✓ <span>Progress dashboard & reminders</span></div>
