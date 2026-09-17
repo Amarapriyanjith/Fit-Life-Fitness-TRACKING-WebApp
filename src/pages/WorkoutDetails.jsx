@@ -458,11 +458,32 @@ export default function WorkoutDetails() {
                                     EXERCISE {currentExercise + 1} OF {totalExercises}
                                 </div>
 
-                                {/* Exercise demonstration */}
+                                {/* Exercise demonstration (supports videoUrl if available) */}
                                 <div className="exercise-demo">
-                                    <div className="exercise-demo-icon">🏃</div>
-                                    <h3>Exercise Demonstration</h3>
-                                    <p>Video coming soon</p>
+                                    {workout?.exercises?.[currentExercise]?.videoUrl ? (
+                                        <video
+                                            key={workout.exercises[currentExercise].videoUrl}
+                                            src={workout.exercises[currentExercise].videoUrl}
+                                            autoPlay
+                                            loop
+                                            muted
+                                            playsInline
+                                            controls
+                                            style={{
+                                                width: "100%",
+                                                maxHeight: "300px",
+                                                borderRadius: "12px",
+                                                objectFit: "contain",
+                                                display: "block"
+                                            }}
+                                        />
+                                    ) : (
+                                        <>
+                                            <div className="exercise-demo-icon">🏃</div>
+                                            <h3>Exercise Demonstration</h3>
+                                            <p>Video coming soon</p>
+                                        </>
+                                    )}
                                 </div>
 
                                 <h2>{exercise.name}</h2>
@@ -479,79 +500,11 @@ export default function WorkoutDetails() {
                                     {formatTime(timeLeft)}
                                 </div>
 
-<<<<<<< HEAD
-                                        EXERCISE{" "}
-                                        {currentExercise +
-                                            1}{" "}
-                                        OF{" "}
-                                        {totalExercises}
-
-                                    </div>
-
-
-                                    {/* Exercise demonstration */}
-{/* Exercise demonstration */}
-<div className="exercise-demo">
-  {workout?.exercises?.[currentExercise]?.videoUrl ? (
-    <video
-      key={workout.exercises[currentExercise].videoUrl}
-      src={workout.exercises[currentExercise].videoUrl}
-      autoPlay
-      loop
-      muted
-      playsInline
-      controls
-      style={{
-        width: "100%",
-        maxHeight: "300px",
-        borderRadius: "12px",
-        objectFit: "contain",
-        display: "block"
-      }}
-    />
-  ) : (
-    <>
-      <div className="exercise-demo-icon">
-        🏃
-      </div>
-      <h3>Exercise Demonstration</h3>
-      <p>Video coming soon</p>
-    </>
-  )}
-</div>
-                                     {/* Exercise demonstration */}
-
- 
-                                    <h2>
-                                        {exercise.name}
-                                    </h2>
-
-
-                                    <p>
-                                        Exercise duration:{" "}
-                                        {
-                                            exercise.duration
-                                        }{" "}
-                                        minutes
-                                    </p>
-
-
-                                    {/* Timer */}
-
-                                    <div
-                                        className={`exercise-timer ${
-                                            timeLeft === 0 &&
-                                            exerciseStarted
-                                                ? "timer-finished"
-                                                : ""
-                                        }`}
-=======
                                 {/* Start exercise */}
                                 {!exerciseStarted && (
                                     <button
                                         className="btn primary"
                                         onClick={startExercise}
->>>>>>> a536b19449ae3e4c4adb703b10cb6c8fc5041171
                                     >
                                         ▶ Start Exercise
                                     </button>
