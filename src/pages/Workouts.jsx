@@ -18,39 +18,44 @@ const workoutData = {
             title: "Full Body Starter",
             desc: "A simple full-body workout designed for beginners.",
             tag: "30 MINS",
-
-            exercises: [
-                {
-                    id: "fbs-1",
-                    name: "Marching in Place",
-                    duration: 5
-                },
-                {
-                    id: "fbs-2",
-                    name: "Bodyweight Squats",
-                    duration: 5
-                },
-                {
-                    id: "fbs-3",
-                    name: "Wall Push-Ups",
-                    duration: 5
-                },
-                {
-                    id: "fbs-4",
-                    name: "Standing Knee Raises",
-                    duration: 5
-                },
-                {
-                    id: "fbs-5",
-                    name: "Glute Bridges",
-                    duration: 5
-                },
-                {
-                    id: "fbs-6",
-                    name: "Standing Calf Raises",
-                    duration: 5
-                }
-            ]
+exercises: [
+        {
+          id: "fbs-1",
+          name: "Shoulder Circles",
+          duration: 2,
+          videoUrl: "/videos/shoulder-circles.mp4"
+        },
+        {
+          id: "fbs-2",
+          name: "Torso Rotations",
+          duration: 2,
+          videoUrl: "/videos/torso-rotations.mp4"
+        },
+        {
+          id: "fbs-3",
+          name: "Leg Swings",
+          duration: 3,
+          videoUrl: "/videos/leg-swings.mp4"
+        },
+        {
+          id: "fbs-4",
+          name: "Bodyweight Squats",
+          duration: 5,
+          videoUrl: "/videos/squats.mp4"
+        },
+        {
+          id: "fbs-5",
+          name: "Cat-Cow Stretch",
+          duration: 3,
+          videoUrl: "/videos/cat-cow.mp4"
+        },
+        {
+          id: "fbs-6",
+          name: "World's Greatest Stretch",
+          duration: 5,
+          videoUrl: "/videos/greatest-stretch.mp4"
+        }
+      ]
         },
 
         {

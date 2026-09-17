@@ -778,24 +778,38 @@ export default function WorkoutDetails() {
 
 
                                     {/* Exercise demonstration */}
+{/* Exercise demonstration */}
+<div className="exercise-demo">
+  {workout?.exercises?.[currentExercise]?.videoUrl ? (
+    <video
+      key={workout.exercises[currentExercise].videoUrl}
+      src={workout.exercises[currentExercise].videoUrl}
+      autoPlay
+      loop
+      muted
+      playsInline
+      controls
+      style={{
+        width: "100%",
+        maxHeight: "300px",
+        borderRadius: "12px",
+        objectFit: "contain",
+        display: "block"
+      }}
+    />
+  ) : (
+    <>
+      <div className="exercise-demo-icon">
+        🏃
+      </div>
+      <h3>Exercise Demonstration</h3>
+      <p>Video coming soon</p>
+    </>
+  )}
+</div>
+                                     {/* Exercise demonstration */}
 
-                                    <div className="exercise-demo">
-
-                                        <div className="exercise-demo-icon">
-                                            🏃
-                                        </div>
-
-                                        <h3>
-                                            Exercise Demonstration
-                                        </h3>
-
-                                        <p>
-                                            Video coming soon
-                                        </p>
-
-                                    </div>
-
-
+ 
                                     <h2>
                                         {exercise.name}
                                     </h2>
