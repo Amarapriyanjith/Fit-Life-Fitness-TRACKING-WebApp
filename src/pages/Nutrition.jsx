@@ -1,18 +1,16 @@
 import { useEffect, useState } from "react";
-
 import {
-    addDoc,
-    collection,
     doc,
     getDoc,
+    setDoc,
     deleteDoc,
+    collection,
     getDocs,
-    serverTimestamp,
-    setDoc
+    addDoc,
+    serverTimestamp
 } from "firebase/firestore";
 
 import { onAuthStateChanged } from "firebase/auth";
-
 import { auth, db } from "../firebase";
 
 const mealData = [
@@ -46,6 +44,7 @@ const mealData = [
     }
 ];
 
+// Get today's local date string (YYYY-MM-DD)
 const getTodayKey = () => {
     const now = new Date();
     const offset = now.getTimezoneOffset();
@@ -64,95 +63,98 @@ function Nutrition() {
     const [savingCalories, setSavingCalories] = useState(false);
     const [savingMealName, setSavingMealName] = useState(null);
 
-    const [calories, setCalories] = useState(0);
+    // Initialize state from LocalStorage cache for instant load
+    const [calories, setCalories] = useState(() => Number(localStorage.getItem("fitlife_cache_nutrition_calories")) || 0);
     const [calorieInput, setCalorieInput] = useState("");
 
-    const [savedMeals, setSavedMeals] = useState([]);
+    const [savedMeals, setSavedMeals] = useState(() => {
+        const saved = localStorage.getItem("fitlife_cache_nutrition_meals");
+        return saved ? JSON.parse(saved) : [];
+    });
 
     const calorieGoal = 600;
 
-    // Load today's total calories from Firestore on component mount
+    // Load today's total calories and saved meals in parallel on component mount
     useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-        if (!user) {
-            setCalories(0);
-            setSavedMeals([]);
-            return;
-        }
-
-        try {
-            const today = getTodayKey();
-
-            // Load today's calories
-            const calorieRef = doc(
-                db,
-                "users",
-                user.uid,
-                "calorieTracking",
-                today
-            );
-
-            const calorieSnap = await getDoc(calorieRef);
-
-            if (calorieSnap.exists()) {
-                setCalories(calorieSnap.data().calories || 0);
-            } else {
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+            if (!user) {
                 setCalories(0);
+                setSavedMeals([]);
+                localStorage.removeItem("fitlife_cache_nutrition_calories");
+                localStorage.removeItem("fitlife_cache_nutrition_meals");
+                return;
             }
 
-            // Load saved meals
-            const mealsRef = collection(
-                db,
-                "users",
-                user.uid,
-                "nutritionPlans"
-            );
+            try {
+                const today = getTodayKey();
+                const calorieRef = doc(db, "users", user.uid, "calorieTracking", today);
+                const mealsRef = collection(db, "users", user.uid, "nutritionPlans");
 
-            const mealsSnap = await getDocs(mealsRef);
+                // Fetch calorie data and saved meals concurrently using Promise.all
+                const [calorieSnap, mealsSnap] = await Promise.all([
+                    getDoc(calorieRef),
+                    getDocs(mealsRef)
+                ]);
 
-            const meals = mealsSnap.docs.map((mealDoc) => ({
-                id: mealDoc.id,
-                ...mealDoc.data()
-            }));
+                // Handle today's calories
+                if (calorieSnap.exists()) {
+                    const cal = calorieSnap.data().calories || 0;
+                    setCalories(cal);
+                    localStorage.setItem("fitlife_cache_nutrition_calories", cal);
+                } else {
+                    setCalories(0);
+                    localStorage.setItem("fitlife_cache_nutrition_calories", 0);
+                }
 
-            setSavedMeals(meals);
-        } catch (error) {
-            console.error("Error loading nutrition data:", error);
-        }
-    });
+                // Handle saved meals list
+                const meals = mealsSnap.docs.map((mealDoc) => ({
+                    id: mealDoc.id,
+                    ...mealDoc.data()
+                }));
 
-    return () => unsubscribe();
-}, []);
+                setSavedMeals(meals);
+                localStorage.setItem("fitlife_cache_nutrition_meals", JSON.stringify(meals));
 
-    // Handle adding manual calorie input
+            } catch (error) {
+                console.error("Error loading nutrition data:", error);
+            }
+        });
+
+        return () => unsubscribe();
+    }, []);
+
+    // Handle adding manual calorie input with Optimistic UI Update
     const handleAddCalories = async (e) => {
         e.preventDefault();
 
         const user = auth.currentUser;
 
         if (!user) {
-            setMessage(
-                "Please log in to track your calories."
-            );
+            setMessage("Please log in to track your calories.");
             return;
         }
 
         const amount = parseInt(calorieInput);
 
         if (!amount || amount <= 0) {
-            setMessage(
-                "Please enter a valid calorie amount."
-            );
+            setMessage("Please enter a valid calorie amount.");
             return;
         }
 
         setSavingCalories(true);
         setMessage("");
 
+        const previousCalories = calories;
+        const newTotal = calories + amount;
+
+        // Instant UI update (Optimistic update)
+        setCalories(newTotal);
+        localStorage.setItem("fitlife_cache_nutrition_calories", newTotal);
+        setCalorieInput("");
+        setMessage(`${amount} kcal added successfully!`);
+
         try {
             const today = getTodayKey();
-            const newTotal = calories + amount;
-
             const calorieRef = doc(
                 db,
                 "users",
@@ -161,6 +163,7 @@ function Nutrition() {
                 today
             );
 
+            // Background sync with Firebase
             await setDoc(
                 calorieRef,
                 {
@@ -171,43 +174,50 @@ function Nutrition() {
                 { merge: true }
             );
 
-            setCalories(newTotal);
-            setCalorieInput("");
-
-            setMessage(
-                `${amount} kcal added successfully!`
-            );
         } catch (error) {
-            console.error(
-                "Error saving calories:",
-                error
-            );
-
-            setMessage(
-                "Calories could not be saved. Please try again."
-            );
+            console.error("Error saving calories:", error);
+            setMessage("Calories could not be saved. Please try again.");
+            
+            // Rollback state if background sync fails
+            setCalories(previousCalories);
+            localStorage.setItem("fitlife_cache_nutrition_calories", previousCalories);
         }
 
         setSavingCalories(false);
     };
 
-    // Handle adding a specific meal to the user's plan
+    // Handle adding a specific meal to the user's plan with Optimistic UI Update
     const handleAddMeal = async (meal) => {
         const user = auth.currentUser;
 
         if (!user) {
-            setMessage(
-                "Please log in to add a meal to your plan."
-            );
+            setMessage("Please log in to add a meal to your plan.");
             return;
         }
 
-        // Track saving state specifically for the clicked meal
         setSavingMealName(meal.name);
         setMessage("");
 
+        // Create a temporary meal object for instant local UI update
+        const tempId = "temp_" + Date.now();
+        const newMealItem = {
+            id: tempId,
+            mealType: meal.type,
+            mealName: meal.name,
+            description: meal.description,
+            calories: meal.calories
+        };
+
+        const previousMeals = savedMeals;
+        const updatedMeals = [newMealItem, ...savedMeals];
+
+        // Instant UI update
+        setSavedMeals(updatedMeals);
+        localStorage.setItem("fitlife_cache_nutrition_meals", JSON.stringify(updatedMeals));
+        setMessage(`${meal.name} added to your plan successfully!`);
+
         try {
-            await addDoc(
+            const docRef = await addDoc(
                 collection(
                     db,
                     "users",
@@ -223,25 +233,28 @@ function Nutrition() {
                 }
             );
 
-            setMessage(
-                `${meal.name} added to your plan successfully!`
+            // Replace temporary ID with actual Firestore ID in state
+            setSavedMeals((currentMeals) =>
+                currentMeals.map((m) => m.id === tempId ? { ...m, id: docRef.id } : m)
             );
-        } catch (error) {
-            console.error(
-                "Error adding meal:",
-                error
-            );
+            localStorage.setItem("fitlife_cache_nutrition_meals", JSON.stringify(
+                updatedMeals.map((m) => m.id === tempId ? { ...m, id: docRef.id } : m)
+            ));
 
-            setMessage(
-                "Meal could not be added. Please try again."
-            );
+        } catch (error) {
+            console.error("Error adding meal:", error);
+            setMessage("Meal could not be added. Please try again.");
+            
+            // Rollback state if addition fails
+            setSavedMeals(previousMeals);
+            localStorage.setItem("fitlife_cache_nutrition_meals", JSON.stringify(previousMeals));
         }
 
-        // Reset saving state after completion
         setSavingMealName(null);
     };
 
-        const handleRemoveMeal = async (mealId, mealName) => {
+    // Handle removing a meal from the user's plan instantly without confirmation popup
+    const handleRemoveMeal = async (mealId, mealName) => {
         const user = auth.currentUser;
 
         if (!user) {
@@ -249,13 +262,16 @@ function Nutrition() {
             return;
         }
 
-        const confirmRemove = window.confirm(
-            `Are you sure you want to remove ${mealName} from your plan?`
-        );
+        const previousMeals = savedMeals;
+        const updatedMeals = savedMeals.filter((meal) => meal.id !== mealId);
 
-        if (!confirmRemove) return;
+        // Instant UI removal (Optimistic update)
+        setSavedMeals(updatedMeals);
+        localStorage.setItem("fitlife_cache_nutrition_meals", JSON.stringify(updatedMeals));
+        setMessage(`${mealName} removed from your plan.`);
 
         try {
+            // Background deletion from Firebase
             await deleteDoc(
                 doc(
                     db,
@@ -266,25 +282,13 @@ function Nutrition() {
                 )
             );
 
-            setSavedMeals((previousMeals) =>
-                previousMeals.filter(
-                    (meal) => meal.id !== mealId
-                )
-            );
-
-            setMessage(
-                `${mealName} removed from your plan.`
-            );
-
         } catch (error) {
-            console.error(
-                "Error removing meal:",
-                error
-            );
-
-            setMessage(
-                "Meal could not be removed. Please try again."
-            );
+            console.error("Error removing meal:", error);
+            setMessage("Meal could not be removed. Please try again.");
+            
+            // Rollback state if deletion fails
+            setSavedMeals(previousMeals);
+            localStorage.setItem("fitlife_cache_nutrition_meals", JSON.stringify(previousMeals));
         }
     };
 

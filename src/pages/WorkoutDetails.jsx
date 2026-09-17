@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-
 import {
     doc,
     getDoc,
@@ -25,7 +24,7 @@ export default function WorkoutDetails() {
 
     const navigate = useNavigate();
 
-        // Get today's date
+    // Get today's local date string (YYYY-MM-DD)
     const getTodayKey = () => {
 
         const now = new Date();
@@ -45,15 +44,26 @@ export default function WorkoutDetails() {
     };
 
 
-    const [workout, setWorkout] = useState(null);
+    // Initialize state with LocalStorage cache if available for instant load
+    const [workout, setWorkout] = useState(() => {
+        const saved = localStorage.getItem(`fitlife_cache_workout_${workoutId}`);
+        return saved ? JSON.parse(saved) : null;
+    });
 
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(() => !localStorage.getItem(`fitlife_cache_workout_${workoutId}`));
 
     const [currentExercise, setCurrentExercise] =
         useState(0);
 
     const [completedExercises, setCompletedExercises] =
-        useState([]);
+        useState(() => {
+            const saved = localStorage.getItem(`fitlife_cache_workout_${workoutId}`);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                return parsed.completedExercises || [];
+            }
+            return [];
+        });
 
     const [timeLeft, setTimeLeft] =
         useState(0);
@@ -68,7 +78,7 @@ export default function WorkoutDetails() {
         useState("");
 
 
-    // Load workout after Firebase authentication is ready
+    // Load workout details and sync with Firestore in background
     useEffect(() => {
 
         const unsubscribe = onAuthStateChanged(
@@ -76,6 +86,8 @@ export default function WorkoutDetails() {
             async (user) => {
 
                 if (!user) {
+
+                    setLoading(false);
 
                     navigate("/login");
 
@@ -119,15 +131,22 @@ export default function WorkoutDetails() {
                     const completed =
                         data.completedExercises || [];
 
-
-                    setWorkout({
+                    const fullWorkoutData = {
                         id: workoutSnapshot.id,
                         ...data
-                    });
+                    };
+
+                    setWorkout(fullWorkoutData);
 
 
                     setCompletedExercises(
                         completed
+                    );
+
+                    // Cache workout data locally for instant future access
+                    localStorage.setItem(
+                        `fitlife_cache_workout_${workoutId}`,
+                        JSON.stringify(fullWorkoutData)
                     );
 
 
@@ -281,6 +300,27 @@ export default function WorkoutDetails() {
 
     };
 
+    // Pause exercise timer (නවතා තැබීම සඳහා)
+    const pauseExercise = () => {
+        setTimerRunning(false);
+    };
+
+    // Resume exercise timer (다시 ආරම්භ කිරීමට)
+    const resumeExercise = () => {
+        setTimerRunning(true);
+    };
+
+    // Reset exercise timer (මුල සිට ආරම්භ කිරීමට)
+    const resetExercise = () => {
+        const exercises = workout.exercises || [];
+        const exercise = exercises[currentExercise];
+        if (exercise) {
+            setTimeLeft(exercise.duration * 60);
+        }
+        setTimerRunning(false);
+        setExerciseStarted(false);
+    };
+
 
     // Complete current exercise
     const completeExercise = async () => {
@@ -326,33 +366,14 @@ export default function WorkoutDetails() {
 
         try {
 
+            const previousCompleted = completedExercises;
             const updatedCompleted = [
                 ...completedExercises,
                 exercise.id
             ];
 
 
-            const workoutRef = doc(
-                db,
-                "users",
-                user.uid,
-                "workoutPlans",
-                workout.id
-            );
-
-
-            await setDoc(
-                workoutRef,
-                {
-                    completedExercises:
-                        updatedCompleted
-                },
-                {
-                    merge: true
-                }
-            );
-
-
+            // Instant UI update
             setCompletedExercises(
                 updatedCompleted
             );
@@ -378,6 +399,36 @@ export default function WorkoutDetails() {
                 "Exercise completed! Great job! 💪"
             );
 
+            const updatedWorkoutCache = {
+                ...workout,
+                completedExercises: updatedCompleted
+            };
+            setWorkout(updatedWorkoutCache);
+            localStorage.setItem(
+                `fitlife_cache_workout_${workoutId}`,
+                JSON.stringify(updatedWorkoutCache)
+            );
+
+
+            const workoutRef = doc(
+                db,
+                "users",
+                user.uid,
+                "workoutPlans",
+                workout.id
+            );
+
+
+            await setDoc(
+                workoutRef,
+                {
+                    completedExercises:
+                        updatedCompleted
+                },
+                {
+                    merge: true
+                }
+            );
 
         } catch (error) {
 
@@ -421,19 +472,23 @@ export default function WorkoutDetails() {
         }
 
 
-        // Confirmation before completing workout
-        const confirmComplete =
-            window.confirm(
-                "Are you sure you completed today's workout?"
+        try {
+
+            const completedWorkoutState = {
+                ...workout,
+                completed: true
+            };
+
+            setWorkout(completedWorkoutState);
+            localStorage.setItem(
+                `fitlife_cache_workout_${workoutId}`,
+                JSON.stringify(completedWorkoutState)
             );
 
+            setMessage(
+                "Workout completed successfully! 🎉"
+            );
 
-        if (!confirmComplete) {
-            return;
-        }
-
-
-        try {
 
             const workoutRef = doc(
                 db,
@@ -458,18 +513,6 @@ export default function WorkoutDetails() {
                 }
             );
 
-
-            setWorkout({
-                ...workout,
-                completed: true
-            });
-
-
-            setMessage(
-                "Workout completed successfully! 🎉"
-            );
-
-
         } catch (error) {
 
             console.error(
@@ -488,7 +531,7 @@ export default function WorkoutDetails() {
 
 
     // Loading screen
-    if (loading) {
+    if (loading && !workout) {
 
         return (
 
@@ -842,29 +885,40 @@ export default function WorkoutDetails() {
                                     )}
 
 
-                                    {/* Timer running */}
+                                    {/* Timer running (With Pause and Reset options) */}
 
-                                    {exerciseStarted &&
-                                        timerRunning && (
+                                    {exerciseStarted && (
 
-                                            <div className="exercise-running">
+                                        <div className="exercise-running" style={{ display: "flex", gap: "10px", justifyContent: "center", marginTop: "15px" }}>
 
-                                                <p>
-                                                    Exercise
-                                                    in
-                                                    progress...
-                                                </p>
-
+                                            {timerRunning ? (
                                                 <button
-                                                    className="btn"
-                                                    disabled
+                                                    className="btn secondary"
+                                                    onClick={pauseExercise}
                                                 >
-                                                    Timer Running
+                                                    ⏸ Pause
                                                 </button>
+                                            ) : (
+                                                <button
+                                                    className="btn primary"
+                                                    onClick={resumeExercise}
+                                                    disabled={timeLeft === 0}
+                                                >
+                                                    ▶ Resume
+                                                </button>
+                                            )}
 
-                                            </div>
+                                            <button
+                                                className="btn"
+                                                onClick={resetExercise}
+                                                style={{ background: "#fee2e2", color: "#991b1b", border: "none" }}
+                                            >
+                                                🔄 Reset Timer
+                                            </button>
 
-                                        )}
+                                        </div>
+
+                                    )}
 
 
                                     {/* Complete exercise */}
@@ -878,6 +932,7 @@ export default function WorkoutDetails() {
                                                 onClick={
                                                     completeExercise
                                                 }
+                                                style={{ marginTop: "15px" }}
                                             >
                                                 ✓ Complete Exercise
                                             </button>
@@ -1027,7 +1082,7 @@ export default function WorkoutDetails() {
                                                         : isCurrent
                                                         ? "current"
                                                         : ""
-                                                }`}
+                                                    }`}
                                             >
                                                 {isCompleted
                                                     ? "Completed"
