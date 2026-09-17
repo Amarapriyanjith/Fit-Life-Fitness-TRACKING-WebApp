@@ -167,10 +167,9 @@ export default function Tracking() {
                     });
 
 
-                    // -------------------------
+                
                     // Calculate 7-day streak
-                    // -------------------------
-
+                    
                     let streak = 0;
 
                     const checkDate = new Date();
