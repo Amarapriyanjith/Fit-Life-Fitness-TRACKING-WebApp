@@ -8,6 +8,7 @@ import {
 } from "firebase/firestore";
 
 import { auth, db } from "../firebase";
+import { onAuthStateChanged } from "firebase/auth";
 
 
 export default function Tracking() {
@@ -30,18 +31,11 @@ export default function Tracking() {
     const [weeklyProgress, setWeeklyProgress] = useState([]);   
 
             // Load today's water and weekly activity
+            useEffect(() => {
 
-        useEffect(() => {
+                const loadTrackingData = async (user) => {
 
-            const loadTrackingData = async () => {
-
-                const user = auth.currentUser;
-
-                if (!user) {
-                    return;
-                }
-
-                try {
+                    try {
 
                     // Get today's date
                     const now = new Date();
@@ -299,13 +293,27 @@ export default function Tracking() {
             };
 
 
-            loadTrackingData();
+                const unsubscribe = onAuthStateChanged(
+                    auth,
+                    (user) => {
 
-        }, []);
+                        if (user) {
+                            loadTrackingData(user);
+                        } else {
+                            setWaterCount(0);
+                            setCalories(0);
+                            setWeeklyStreak(0);
+                        }
 
-        // Save today's calories
+                    }
+                );
+
+                return () => unsubscribe();
+
+                }, []);
+
+                 // Save today's calories
                 const handleSaveCalories = async (e) => {
-
                     e.preventDefault();
 
                     const user = auth.currentUser;
@@ -314,36 +322,25 @@ export default function Tracking() {
                         return;
                     }
 
-                    const calorieValue =
-                        parseInt(calorieInput, 10);
+                    const calorieValue = parseInt(calorieInput, 10);
 
-                    if (
-                        !calorieValue ||
-                        calorieValue < 0
-                    ) {
+                    if (!calorieValue || calorieValue < 0) {
                         return;
                     }
 
                     setSaving(true);
 
                     try {
-
                         const now = new Date();
+                        const offset = now.getTimezoneOffset();
 
-                        const offset =
-                            now.getTimezoneOffset();
+                        const localDate = new Date(
+                            now.getTime() - offset * 60000
+                        );
 
-                        const localDate =
-                            new Date(
-                                now.getTime() -
-                                offset * 60000
-                            );
-
-                        const today =
-                            localDate
-                                .toISOString()
-                                .slice(0, 10);
-
+                        const today = localDate
+                            .toISOString()
+                            .slice(0, 10);
 
                         const calorieDocRef = doc(
                             db,
@@ -353,11 +350,13 @@ export default function Tracking() {
                             today
                         );
 
+                        // Add the new calories to today's existing calories
+                        const newCalories = calories + calorieValue;
 
                         await setDoc(
                             calorieDocRef,
                             {
-                                calories: calorieValue,
+                                calories: newCalories,
                                 date: today,
                                 updatedAt: serverTimestamp()
                             },
@@ -366,16 +365,17 @@ export default function Tracking() {
                             }
                         );
 
+                        // Update the screen
+                        setCalories(newCalories);
 
-                        setCalories(
-                            calorieValue
-                        );
-
+                        // Clear input
                         setCalorieInput("");
 
                         console.log(
-                            "Calories saved successfully:",
-                            calorieValue
+                            "Calories added successfully:",
+                            calorieValue,
+                            "Total:",
+                            newCalories
                         );
 
                     } catch (error) {
