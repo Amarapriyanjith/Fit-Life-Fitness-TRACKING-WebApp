@@ -6,13 +6,13 @@ import { getAnalytics } from "firebase/analytics";
 
 // Securely fetch credentials from the .env file
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
-  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
+ 
+  apiKey: "AIzaSyDBp5KVpu5CCuB2zi8EHlQj1tmlZGl4fkw",
+  authDomain: "your-project-id.firebaseapp.com",
+  projectId: "your-project-id",
+  storageBucket: "your-project.appspot.com",
+  messagingSenderId: "1:793952566736:web:ca26383df98354ad400dd5",
+  appId: "your-app-id"
 };
 
 // Initialize Firebase
@@ -22,3 +22,8 @@ const analytics = getAnalytics(app);
 // Exports required for Navbar.jsx and other pages
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+
+
+
+
