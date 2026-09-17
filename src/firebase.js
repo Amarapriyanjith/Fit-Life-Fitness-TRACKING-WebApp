@@ -6,13 +6,13 @@ import { getAnalytics } from "firebase/analytics";
 
 // Securely fetch credentials from the .env file
 const firebaseConfig = {
- 
   apiKey: "AIzaSyDBp5KVpu5CCuB2zi8EHlQj1tmlZGl4fkw",
-  authDomain: "your-project-id.firebaseapp.com",
-  projectId: "your-project-id",
-  storageBucket: "your-project.appspot.com",
-  messagingSenderId: "1:793952566736:web:ca26383df98354ad400dd5",
-  appId: "your-app-id"
+  authDomain: "fitlife-6c595.firebaseapp.com",
+  projectId: "fitlife-6c595",
+  storageBucket: "fitlife-6c595.firebasestorage.app",
+  messagingSenderId: "793952566736",
+  appId: "1:793952566736:web:140fe0d67e1d7e30400dd5",
+  measurementId: "G-6WVFTPY45E"
 };
 
 // Initialize Firebase
