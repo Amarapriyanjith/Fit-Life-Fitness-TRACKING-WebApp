@@ -2,14 +2,20 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../firebase";
+import logoImage from "../assets/images/logo.jpeg";
 
 function Navbar() {
-
+    // State to manage mobile menu open/close status
     const [menuOpen, setMenuOpen] = useState(false);
+    
+    // State to store the currently authenticated user
     const [user, setUser] = useState(null);
+    
+    // Hooks for routing and location paths
     const location = useLocation();
     const navigate = useNavigate();
 
+    // Listen to Firebase authentication state changes
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(
             auth,
@@ -17,23 +23,23 @@ function Navbar() {
                 setUser(currentUser);
             }
         );
-
+        // Clean up the subscription on unmount
         return () => unsubscribe();
     }, []);
 
+    // Function to close the mobile menu
     const closeMenu = () => {
         setMenuOpen(false);
     };
 
+    // Handle user logout process with a confirmation prompt
     const handleLogout = async () => {
         const confirmLogout = window.confirm(
             "Are you sure you want to logout?"
         );
-
         if (!confirmLogout) {
             return;
         }
-
         try {
             await signOut(auth);
             closeMenu();
@@ -44,51 +50,45 @@ function Navbar() {
     };
 
     return (
-        <header 
-            className="nav-wrap" 
-            style={{ 
-                borderBottom: "2px solid #000000", 
-                backgroundColor: "#ffffff",
-                position: "sticky",
-                top: 0,
-                zIndex: 1000
-            }}
-        >
+        <header className="nav-wrap">
             <nav className="nav container">
-
+                {/* Brand Logo and Name Section */}
                 <Link
                     className="brand"
                     to="/"
                     onClick={closeMenu}
+                    style={{ 
+                        display: "flex", 
+                        alignItems: "center", 
+                        gap: "0px" 
+                    }}
                 >
-                    <span className="brand-mark">
-                        F
-                    </span>
+                    <img 
+                        src={logoImage} 
+                        alt="FitLife Logo" 
+                        style={{ 
+                            height: "75px", 
+                            width: "auto", 
+                            marginRight: "-5px" 
+                        }} 
+                    />
                     <span>
                         Fit<span>Life</span>
                     </span>
                 </Link>
 
+                {/* Mobile Menu Toggle Button */}
                 <button
                     className="menu"
-                    onClick={() =>
-                        setMenuOpen(!menuOpen)
-                    }
+                    onClick={() => setMenuOpen(!menuOpen)}
                 >
                     ☰
                 </button>
 
-                <div
-                    className={`nav-links ${
-                        menuOpen ? "show" : ""
-                    }`}
-                >
+                {/* Navigation Links and Authentication Actions */}
+                <div className={`nav-links ${menuOpen ? "show" : ""}`}>
                     <Link
-                        className={
-                            location.pathname === "/"
-                                ? "active"
-                                : ""
-                        }
+                        className={location.pathname === "/" ? "active" : ""}
                         to="/"
                         onClick={closeMenu}
                     >
@@ -96,11 +96,7 @@ function Navbar() {
                     </Link>
 
                     <Link
-                        className={
-                            location.pathname === "/workouts"
-                                ? "active"
-                                : ""
-                        }
+                        className={location.pathname === "/workouts" ? "active" : ""}
                         to="/workouts"
                         onClick={closeMenu}
                     >
@@ -108,11 +104,7 @@ function Navbar() {
                     </Link>
 
                     <Link
-                        className={
-                            location.pathname === "/nutrition"
-                                ? "active"
-                                : ""
-                        }
+                        className={location.pathname === "/nutrition" ? "active" : ""}
                         to="/nutrition"
                         onClick={closeMenu}
                     >
@@ -120,11 +112,7 @@ function Navbar() {
                     </Link>
 
                     <Link
-                        className={
-                            location.pathname === "/tracking"
-                                ? "active"
-                                : ""
-                        }
+                        className={location.pathname === "/tracking" ? "active" : ""}
                         to="/tracking"
                         onClick={closeMenu}
                     >
@@ -132,17 +120,14 @@ function Navbar() {
                     </Link>
 
                     <Link
-                        className={
-                            location.pathname === "/about"
-                                ? "active"
-                                : ""
-                        }
+                        className={location.pathname === "/about" ? "active" : ""}
                         to="/about"
                         onClick={closeMenu}
                     >
                         About
                     </Link>
 
+                    {/* Conditional rendering based on user authentication status */}
                     {!user ? (
                         <>
                             <Link
@@ -179,11 +164,8 @@ function Navbar() {
                             </button>
                         </>
                     )}
-
                 </div>
-
             </nav>
-
         </header>
     );
 }

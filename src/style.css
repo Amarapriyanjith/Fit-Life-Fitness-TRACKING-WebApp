@@ -1859,12 +1859,10 @@ footer {
         white-space: nowrap;
     }
 }
-@media (max-width: 700px) {
-    .saved-meals-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .saved-meal-card {
-        padding: 20px;
-    }
+.home-container {
+  min-height: 100vh;
+  background-image: linear-gradient(rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.7)), url('./assets/hero-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
