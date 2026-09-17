@@ -1,12 +1,18 @@
 import { useEffect, useState } from "react";
+
 import {
     addDoc,
     collection,
     doc,
     getDoc,
+    deleteDoc,
+    getDocs,
     serverTimestamp,
     setDoc
 } from "firebase/firestore";
+
+import { onAuthStateChanged } from "firebase/auth";
+
 import { auth, db } from "../firebase";
 
 const mealData = [
@@ -61,43 +67,62 @@ function Nutrition() {
     const [calories, setCalories] = useState(0);
     const [calorieInput, setCalorieInput] = useState("");
 
+    const [savedMeals, setSavedMeals] = useState([]);
+
     const calorieGoal = 600;
 
     // Load today's total calories from Firestore on component mount
     useEffect(() => {
-        const loadCalories = async () => {
-            const user = auth.currentUser;
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+            setCalories(0);
+            setSavedMeals([]);
+            return;
+        }
 
-            if (!user) return;
+        try {
+            const today = getTodayKey();
 
-            try {
-                const today = getTodayKey();
+            // Load today's calories
+            const calorieRef = doc(
+                db,
+                "users",
+                user.uid,
+                "calorieTracking",
+                today
+            );
 
-                const calorieRef = doc(
-                    db,
-                    "users",
-                    user.uid,
-                    "calorieTracking",
-                    today
-                );
+            const calorieSnap = await getDoc(calorieRef);
 
-                const calorieSnap = await getDoc(calorieRef);
-
-                if (calorieSnap.exists()) {
-                    setCalories(calorieSnap.data().calories || 0);
-                } else {
-                    setCalories(0);
-                }
-            } catch (error) {
-                console.error(
-                    "Error loading calories:",
-                    error
-                );
+            if (calorieSnap.exists()) {
+                setCalories(calorieSnap.data().calories || 0);
+            } else {
+                setCalories(0);
             }
-        };
 
-        loadCalories();
-    }, []);
+            // Load saved meals
+            const mealsRef = collection(
+                db,
+                "users",
+                user.uid,
+                "nutritionPlans"
+            );
+
+            const mealsSnap = await getDocs(mealsRef);
+
+            const meals = mealsSnap.docs.map((mealDoc) => ({
+                id: mealDoc.id,
+                ...mealDoc.data()
+            }));
+
+            setSavedMeals(meals);
+        } catch (error) {
+            console.error("Error loading nutrition data:", error);
+        }
+    });
+
+    return () => unsubscribe();
+}, []);
 
     // Handle adding manual calorie input
     const handleAddCalories = async (e) => {
@@ -214,6 +239,53 @@ function Nutrition() {
 
         // Reset saving state after completion
         setSavingMealName(null);
+    };
+
+        const handleRemoveMeal = async (mealId, mealName) => {
+        const user = auth.currentUser;
+
+        if (!user) {
+            setMessage("Please log in to manage your meal plan.");
+            return;
+        }
+
+        const confirmRemove = window.confirm(
+            `Are you sure you want to remove ${mealName} from your plan?`
+        );
+
+        if (!confirmRemove) return;
+
+        try {
+            await deleteDoc(
+                doc(
+                    db,
+                    "users",
+                    user.uid,
+                    "nutritionPlans",
+                    mealId
+                )
+            );
+
+            setSavedMeals((previousMeals) =>
+                previousMeals.filter(
+                    (meal) => meal.id !== mealId
+                )
+            );
+
+            setMessage(
+                `${mealName} removed from your plan.`
+            );
+
+        } catch (error) {
+            console.error(
+                "Error removing meal:",
+                error
+            );
+
+            setMessage(
+                "Meal could not be removed. Please try again."
+            );
+        }
     };
 
     const progress =
@@ -401,57 +473,143 @@ function Nutrition() {
                         </div>
 
 
-                        <div className="meal-grid">
+                    <div className="meal-grid">
 
-                            {mealData.map((meal, index) => (
+                        {mealData.map((meal, index) => (
 
-                                <div
-                                    className="meal"
-                                    key={index}
-                                >
+                            <div
+                                className="meal"
+                                key={index}
+                            >
 
-                                    <div className="meal-icon">
-                                        {meal.icon}
-                                    </div>
-
-                                    <span className="tag">
-                                        {meal.type}
-                                    </span>
-
-                                    <h3>
-                                        {meal.name}
-                                    </h3>
-
-                                    <p>
-                                        {meal.description}
-                                    </p>
-
-                                    <strong>
-                                        {meal.calories} kcal
-                                    </strong>
-
-                                    <button
-                                        className="btn primary"
-                                        onClick={() =>
-                                            handleAddMeal(meal)
-                                        }
-                                        // Disable only the button for the specific meal being saved
-                                        disabled={savingMealName === meal.name}
-                                        style={{
-                                            marginTop: "15px",
-                                            width: "100%"
-                                        }}
-                                    >
-                                        {savingMealName === meal.name
-                                            ? "Saving..."
-                                            : "Add to plan →"}
-                                    </button>
-
+                                <div className="meal-icon">
+                                    {meal.icon}
                                 </div>
 
-                            ))}
+                                <span className="tag">
+                                    {meal.type}
+                                </span>
+
+                                <h3>
+                                    {meal.name}
+                                </h3>
+
+                                <p>
+                                    {meal.description}
+                                </p>
+
+                                <strong>
+                                    {meal.calories} kcal
+                                </strong>
+
+
+
+                                <button
+                                    className="btn primary"
+                                    onClick={() =>
+                                        handleAddMeal(meal)
+                                    }
+                                    disabled={savingMealName === meal.name}
+                                    style={{
+                                        marginTop: "15px",
+                                        width: "100%"
+                                    }}
+                                >
+                                    {savingMealName === meal.name
+                                        ? "Saving..."
+                                        : "Add to plan →"}
+                                </button>
+
+                            </div>
+
+                        ))}
+
+                    </div>
+
+
+                    {/* My saved meals */}
+
+                    {savedMeals.length > 0 && (
+                        <div className="saved-meals-section">
+
+                            <div className="section-head">
+
+                                <div>
+                                    <div className="eyebrow">
+                                        MY MEAL PLAN
+                                    </div>
+
+                                    <h2>
+                                        Your saved <span>meals.</span>
+                                    </h2>
+                                </div>
+
+                                <p>
+                                    Meals you have added to your personal nutrition plan.
+                                </p>
+
+                            </div>
+
+                            <div className="saved-meals-grid">
+
+                                {savedMeals.map((meal) => (
+
+                                    <div
+                                        className="saved-meal-card"
+                                        key={meal.id}
+                                    >
+
+                                        <div className="saved-meal-icon">
+                                            {meal.mealType === "Breakfast"
+                                                ? "🥣"
+                                                : meal.mealType === "Lunch"
+                                                ? "🍗"
+                                                : meal.mealType === "Dinner"
+                                                ? "🥗"
+                                                : "🍎"}
+                                        </div>
+
+                                        <div>
+
+                                            <span className="tag">
+                                                {meal.mealType}
+                                            </span>
+
+                                            <h3>
+                                                {meal.mealName}
+                                            </h3>
+
+                                            <p>
+                                                {meal.description}
+                                            </p>
+
+                                            <strong>
+                                                {meal.calories} kcal
+                                            </strong>
+
+                                            <button className="btn secondary remove-meal-btn"
+                                                onClick={() =>
+                                                    handleRemoveMeal(
+                                                        meal.id,
+                                                        meal.mealName
+                                                    )
+                                                }
+                                            >
+                                                Remove
+                                            </button>
+
+                                        </div>
+
+                                    </div>
+
+                                ))}
+
+                            </div>
 
                         </div>
+                    )}
+
+                        
 
                     </div>
 

@@ -26,7 +26,8 @@ export default function Tracking() {
     const [waterCount, setWaterCount] = useState(0);
     const [calories, setCalories] = useState(0);
     const [calorieInput, setCalorieInput] = useState("");
-    const [weeklyStreak, setWeeklyStreak] = useState(0);    
+    const [weeklyStreak, setWeeklyStreak] = useState(0); 
+    const [weeklyProgress, setWeeklyProgress] = useState([]);   
 
             // Load today's water and weekly activity
 
@@ -212,6 +213,78 @@ export default function Tracking() {
                     }
 
                     setWeeklyStreak(streak);
+
+                    
+                    // Build 7-day progress history
+                    
+
+                    const progressData = [];
+
+                    for (let i = 6; i >= 0; i--) {
+
+                        const date = new Date();
+
+                        date.setDate(date.getDate() - i);
+
+                        const offset = date.getTimezoneOffset();
+
+                        const localDate = new Date(
+                            date.getTime() - offset * 60000
+                        );
+
+                        const dateKey = localDate
+                            .toISOString()
+                            .slice(0, 10);
+
+                        // Water
+                        const waterDoc = waterSnapshot.docs.find(
+                            (item) => item.id === dateKey
+                        );
+
+                        const water = waterDoc
+                            ? waterDoc.data().glasses || 0
+                            : 0;
+
+                        // Calories
+                        const calorieDoc = calorieSnapshot.docs.find(
+                            (item) => item.id === dateKey
+                        );
+
+                        const dailyCalories = calorieDoc
+                            ? calorieDoc.data().calories || 0
+                            : 0;
+
+                        // Workouts
+                        const dailyWorkouts = workoutSnapshot.docs.filter(
+                            (item) => {
+                                const data = item.data();
+
+                                return (
+                                    data.completed === true &&
+                                    (
+                                        data.completedDate === dateKey ||
+                                        (
+                                            !data.completedDate &&
+                                            data.completedAt &&
+                                            data.completedAt
+                                                .toDate()
+                                                .toISOString()
+                                                .slice(0, 10) === dateKey
+                                        )
+                                    )
+                                );
+                            }
+                        ).length;
+
+                        progressData.push({
+                            date: dateKey,
+                            water: water,
+                            calories: dailyCalories,
+                            workouts: dailyWorkouts
+                        });
+                    }
+
+                    setWeeklyProgress(progressData);
 
 
                 } catch (error) {
@@ -646,6 +719,94 @@ export default function Tracking() {
 
                             </div>
 
+
+                        </div>
+
+                        <div className="progress-history-card">
+
+                            <div className="section-head">
+
+                                <div>
+                                    <div className="eyebrow">
+                                        PROGRESS HISTORY
+                                    </div>
+
+                                    <h2>
+                                        Your last <span>7 days.</span>
+                                    </h2>
+                                </div>
+
+                                <p>
+                                    Review your recent water, calorie, and workout activity.
+                                </p>
+
+                            </div>
+
+
+                            <div className="progress-history">
+
+                                {weeklyProgress.map((day) => (
+
+                                    <div
+                                        className="progress-history-row"
+                                        key={day.date}
+                                    >
+
+                                        <div className="progress-history-date">
+                                            <strong>
+                                                {new Date(
+                                                    `${day.date}T00:00:00`
+                                                ).toLocaleDateString(
+                                                    "en-US",
+                                                    { weekday: "short" }
+                                                )}
+                                            </strong>
+
+                                            <small>
+                                                {day.date}
+                                            </small>
+                                        </div>
+
+
+                                        <div className="progress-history-item">
+
+                                            <span>💧 Water</span>
+
+                                            <strong>
+                                                {day.water} / 8
+                                            </strong>
+
+                                        </div>
+
+
+                                        <div className="progress-history-item">
+
+                                            <span>🔥 Calories</span>
+
+                                            <strong>
+                                                {day.calories} kcal
+                                            </strong>
+
+                                        </div>
+
+
+                                        <div className="progress-history-item">
+
+                                            <span>🏋️ Workout</span>
+
+                                                <strong>
+                                                    {day.workouts > 0
+                                                        ? "Completed"
+                                                        : "Not completed"}
+                                                </strong>
+
+                                        </div>
+
+                                    </div>
+
+                                ))}
+
+                            </div>
 
                         </div>
 
