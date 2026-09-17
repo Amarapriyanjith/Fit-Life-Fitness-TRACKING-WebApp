@@ -7,6 +7,8 @@ import {
 import { auth, db } from "../firebase";
 import { Link, useNavigate } from "react-router-dom";
 
+import workoutBg from "../assets/images/warm-up-sets.jpg";
+
 // Workout data categorized by fitness level
 const workoutData = {
 
@@ -448,9 +450,36 @@ export default function Workouts() {
         <div>
             <main>
 
-                {/* Hero section */}
-                <section className="page-hero">
-                    <div className="container">
+                {/* Hero section with Right Background Image and Left Fade */}
+                <section 
+                    className="page-hero"
+                    style={{
+                        position: "relative",
+                        overflow: "hidden",
+                        minHeight: "260px",
+                        display: "flex",
+                        alignItems: "center"
+                    }}
+                >
+                    {/* Background shaded image */}
+                    <div 
+                        style={{
+                            position: "absolute",
+                            top: 0,
+                            right: 0,
+                            width: "55%",
+                            height: "100%",
+                            backgroundImage: `url(${workoutBg})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                            WebkitMaskImage: "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,1) 100%)",
+                            maskImage: "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,1) 100%)",
+                            pointerEvents: "none",
+                            zIndex: 1
+                        }} 
+                    />
+
+                    <div className="container" style={{ position: "relative", zIndex: 2 }}>
 
                         <div className="eyebrow">
                             MOVE WITH CONFIDENCE
@@ -464,7 +493,7 @@ export default function Workouts() {
                             </span>
                         </h1>
 
-                        <p>
+                        <p style={{ maxWidth: "560px" }}>
                             Start small, learn the movements,
                             and build consistency. Select a
                             fitness level to explore a workout plan.
