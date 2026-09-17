@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import About from "./pages/About";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
+import WorkoutDetails from "./pages/WorkoutDetails";
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/workouts" element={<Workouts />} />
+        <Route path="/workouts/:workoutId" element={<WorkoutDetails />} />
         <Route path="/nutrition" element={<Nutrition />} />
         <Route path="/tracking" element={<Tracking />} />
         <Route path="/dashboard" element={<Dashboard />} />

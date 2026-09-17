@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
     doc,
     setDoc,
-    serverTimestamp
+    serverTimestamp,
+    collection,
+    getDocs
 } from "firebase/firestore";
 
 import { auth, db } from "../firebase";
@@ -21,6 +23,374 @@ export default function Tracking() {
     const [recommendation, setRecommendation] = useState("");
 
     const [saving, setSaving] = useState(false);
+    const [waterCount, setWaterCount] = useState(0);
+    const [calories, setCalories] = useState(0);
+    const [calorieInput, setCalorieInput] = useState("");
+    const [weeklyStreak, setWeeklyStreak] = useState(0); 
+    const [weeklyProgress, setWeeklyProgress] = useState([]);   
+
+            // Load today's water and weekly activity
+
+        useEffect(() => {
+
+            const loadTrackingData = async () => {
+
+                const user = auth.currentUser;
+
+                if (!user) {
+                    return;
+                }
+
+                try {
+
+                    // Get today's date
+                    const now = new Date();
+
+                    const offset = now.getTimezoneOffset();
+
+                    const localDate = new Date(
+                        now.getTime() - offset * 60000
+                    );
+
+                    const today = localDate
+                        .toISOString()
+                        .slice(0, 10);
+
+
+                    // Load water intake
+                    
+                    const waterSnapshot = await getDocs(
+                        collection(
+                            db,
+                            "users",
+                            user.uid,
+                            "waterIntake"
+                        )
+                    );
+
+                    const todayWater = waterSnapshot.docs.find(
+                        (item) => item.id === today
+                    );
+
+                    if (todayWater) {
+
+                        setWaterCount(
+                            todayWater.data().glasses || 0
+                        );
+
+                    } else {
+
+                        setWaterCount(0);
+
+                    }
+
+                    // Find active days
+                    
+                    const activeDates = new Set();
+
+
+                    // Water activity
+                    waterSnapshot.docs.forEach((item) => {
+
+                        const data = item.data();
+
+                        if (data.glasses > 0) {
+                            activeDates.add(item.id);
+                        }
+
+                    });
+
+
+                            // Load today's calories
+                            const calorieSnapshot = await getDocs(
+                                collection(
+                                    db,
+                                    "users",
+                                    user.uid,
+                                    "calorieTracking"
+                                )
+                            );
+
+                            const todayCalories =
+                                calorieSnapshot.docs.find(
+                                    (item) => item.id === today
+                                );
+
+                            if (todayCalories) {
+
+                                setCalories(
+                                    todayCalories.data().calories || 0
+                                );
+
+                            } else {
+
+                                setCalories(0);
+
+                            }
+
+
+                            // Add calorie activity dates
+                            calorieSnapshot.docs.forEach((item) => {
+
+                                const data = item.data();
+
+                                if (data.calories > 0) {
+                                    activeDates.add(item.id);
+                                }
+
+                            });
+
+
+                    // Workout activity
+                    const workoutSnapshot = await getDocs(
+                        collection(
+                            db,
+                            "users",
+                            user.uid,
+                            "workoutPlans"
+                        )
+                    );
+
+                    workoutSnapshot.docs.forEach((item) => {
+
+                        const data = item.data();
+
+                        if (
+                            data.completed === true &&
+                            data.completedAt
+                        ) {
+
+                            const completedDate =
+                                data.completedAt
+                                    .toDate()
+                                    .toISOString()
+                                    .slice(0, 10);
+
+                            activeDates.add(completedDate);
+
+                        }
+
+                    });
+
+
+                    // -------------------------
+                    // Calculate 7-day streak
+                    // -------------------------
+
+                    let streak = 0;
+
+                    const checkDate = new Date();
+
+                    for (let i = 0; i < 7; i++) {
+
+                        const offset =
+                            checkDate.getTimezoneOffset();
+
+                        const localCheckDate = new Date(
+                            checkDate.getTime() -
+                            offset * 60000
+                        );
+
+                        const dateKey = localCheckDate
+                            .toISOString()
+                            .slice(0, 10);
+
+
+                        if (activeDates.has(dateKey)) {
+
+                            streak++;
+
+                            checkDate.setDate(
+                                checkDate.getDate() - 1
+                            );
+
+                        } else {
+
+                            break;
+
+                        }
+
+                    }
+
+                    setWeeklyStreak(streak);
+
+                    
+                    // Build 7-day progress history
+                    
+
+                    const progressData = [];
+
+                    for (let i = 6; i >= 0; i--) {
+
+                        const date = new Date();
+
+                        date.setDate(date.getDate() - i);
+
+                        const offset = date.getTimezoneOffset();
+
+                        const localDate = new Date(
+                            date.getTime() - offset * 60000
+                        );
+
+                        const dateKey = localDate
+                            .toISOString()
+                            .slice(0, 10);
+
+                        // Water
+                        const waterDoc = waterSnapshot.docs.find(
+                            (item) => item.id === dateKey
+                        );
+
+                        const water = waterDoc
+                            ? waterDoc.data().glasses || 0
+                            : 0;
+
+                        // Calories
+                        const calorieDoc = calorieSnapshot.docs.find(
+                            (item) => item.id === dateKey
+                        );
+
+                        const dailyCalories = calorieDoc
+                            ? calorieDoc.data().calories || 0
+                            : 0;
+
+                        // Workouts
+                        const dailyWorkouts = workoutSnapshot.docs.filter(
+                            (item) => {
+                                const data = item.data();
+
+                                return (
+                                    data.completed === true &&
+                                    (
+                                        data.completedDate === dateKey ||
+                                        (
+                                            !data.completedDate &&
+                                            data.completedAt &&
+                                            data.completedAt
+                                                .toDate()
+                                                .toISOString()
+                                                .slice(0, 10) === dateKey
+                                        )
+                                    )
+                                );
+                            }
+                        ).length;
+
+                        progressData.push({
+                            date: dateKey,
+                            water: water,
+                            calories: dailyCalories,
+                            workouts: dailyWorkouts
+                        });
+                    }
+
+                    setWeeklyProgress(progressData);
+
+
+                } catch (error) {
+
+                    console.error(
+                        "Error loading tracking data:",
+                        error
+                    );
+
+                }
+
+            };
+
+
+            loadTrackingData();
+
+        }, []);
+
+        // Save today's calories
+                const handleSaveCalories = async (e) => {
+
+                    e.preventDefault();
+
+                    const user = auth.currentUser;
+
+                    if (!user) {
+                        return;
+                    }
+
+                    const calorieValue =
+                        parseInt(calorieInput, 10);
+
+                    if (
+                        !calorieValue ||
+                        calorieValue < 0
+                    ) {
+                        return;
+                    }
+
+                    setSaving(true);
+
+                    try {
+
+                        const now = new Date();
+
+                        const offset =
+                            now.getTimezoneOffset();
+
+                        const localDate =
+                            new Date(
+                                now.getTime() -
+                                offset * 60000
+                            );
+
+                        const today =
+                            localDate
+                                .toISOString()
+                                .slice(0, 10);
+
+
+                        const calorieDocRef = doc(
+                            db,
+                            "users",
+                            user.uid,
+                            "calorieTracking",
+                            today
+                        );
+
+
+                        await setDoc(
+                            calorieDocRef,
+                            {
+                                calories: calorieValue,
+                                date: today,
+                                updatedAt: serverTimestamp()
+                            },
+                            {
+                                merge: true
+                            }
+                        );
+
+
+                        setCalories(
+                            calorieValue
+                        );
+
+                        setCalorieInput("");
+
+                        console.log(
+                            "Calories saved successfully:",
+                            calorieValue
+                        );
+
+                    } catch (error) {
+
+                        console.error(
+                            "Error saving calories:",
+                            error
+                        );
+
+                    } finally {
+
+                        setSaving(false);
+
+                    }
+                };
 
 
     // Calculate BMI
@@ -232,7 +602,7 @@ export default function Tracking() {
 
 
                                 <strong>
-                                    1.6
+                                    {(waterCount * 0.3125).toFixed(1)}
                                     <small>
                                         / 2.5 L
                                     </small>
@@ -243,7 +613,7 @@ export default function Tracking() {
 
                                     <i
                                         style={{
-                                            width: "64%"
+                                            width: `${Math.min((waterCount / 8) * 100, 100)}%`
                                         }}
                                     ></i>
 
@@ -265,7 +635,7 @@ export default function Tracking() {
 
 
                                 <strong>
-                                    420
+                                    {calories}
                                     <small>
                                         kcal
                                     </small>
@@ -276,16 +646,45 @@ export default function Tracking() {
 
                                     <i
                                         style={{
-                                            width: "70%"
+                                            width: `${Math.min((calories / 600) * 100, 100)}%`
                                         }}
                                     ></i>
 
                                 </div>
 
+                                    <p>
+                                        600 kcal target
+                                    </p>
 
-                                <p>
-                                    600 kcal target
-                                </p>
+                                    <form
+                                        className="calorie-form"
+                                        onSubmit={handleSaveCalories}
+                                    >
+
+                                        <input
+                                            type="number"
+                                            min="0"
+                                            max="5000"
+                                            placeholder="Enter calories"
+                                            value={calorieInput}
+                                            onChange={(e) =>
+                                                setCalorieInput(
+                                                    e.target.value
+                                                )
+                                            }
+                                        />
+
+                                        <button
+                                            className="btn primary"
+                                            type="submit"
+                                            disabled={saving}
+                                        >
+                                            {saving
+                                                ? "Saving..."
+                                                : "Save Calories"}
+                                        </button>
+
+                                    </form>
 
                             </div>
 
@@ -297,16 +696,20 @@ export default function Tracking() {
                                 </span>
 
 
-                                <strong>
-                                    5
-                                    <small>
-                                        days
-                                    </small>
-                                </strong>
+                                    <strong>
+                                        {weeklyStreak}
+                                        <small>
+                                             days
+                                        </small>
+                                    </strong>
 
 
                                 <div className="streak">
-                                    🔥 🔥 🔥 🔥 🔥 ○ ○
+                                    {[0, 1, 2, 3, 4, 5, 6].map((day) => (
+                                        <span key={day}>
+                                            {day < weeklyStreak ? "🔥" : "○"}
+                                        </span>
+                                    ))}
                                 </div>
 
 
@@ -316,6 +719,94 @@ export default function Tracking() {
 
                             </div>
 
+
+                        </div>
+
+                        <div className="progress-history-card">
+
+                            <div className="section-head">
+
+                                <div>
+                                    <div className="eyebrow">
+                                        PROGRESS HISTORY
+                                    </div>
+
+                                    <h2>
+                                        Your last <span>7 days.</span>
+                                    </h2>
+                                </div>
+
+                                <p>
+                                    Review your recent water, calorie, and workout activity.
+                                </p>
+
+                            </div>
+
+
+                            <div className="progress-history">
+
+                                {weeklyProgress.map((day) => (
+
+                                    <div
+                                        className="progress-history-row"
+                                        key={day.date}
+                                    >
+
+                                        <div className="progress-history-date">
+                                            <strong>
+                                                {new Date(
+                                                    `${day.date}T00:00:00`
+                                                ).toLocaleDateString(
+                                                    "en-US",
+                                                    { weekday: "short" }
+                                                )}
+                                            </strong>
+
+                                            <small>
+                                                {day.date}
+                                            </small>
+                                        </div>
+
+
+                                        <div className="progress-history-item">
+
+                                            <span>💧 Water</span>
+
+                                            <strong>
+                                                {day.water} / 8
+                                            </strong>
+
+                                        </div>
+
+
+                                        <div className="progress-history-item">
+
+                                            <span>🔥 Calories</span>
+
+                                            <strong>
+                                                {day.calories} kcal
+                                            </strong>
+
+                                        </div>
+
+
+                                        <div className="progress-history-item">
+
+                                            <span>🏋️ Workout</span>
+
+                                                <strong>
+                                                    {day.workouts > 0
+                                                        ? "Completed"
+                                                        : "Not completed"}
+                                                </strong>
+
+                                        </div>
+
+                                    </div>
+
+                                ))}
+
+                            </div>
 
                         </div>
 
