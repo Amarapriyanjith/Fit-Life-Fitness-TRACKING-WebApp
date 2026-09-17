@@ -2,20 +2,18 @@ import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "../firebase";
-import logoImage from "../assets/images/logo.jpeg";
+
 
 function Navbar() {
     // State to manage mobile menu open/close status
     const [menuOpen, setMenuOpen] = useState(false);
-    
-    // State to store the currently authenticated user
+
     const [user, setUser] = useState(null);
-    
-    // Hooks for routing and location paths
+
     const location = useLocation();
     const navigate = useNavigate();
 
-    // Listen to Firebase authentication state changes
+
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(
             auth,
@@ -27,57 +25,55 @@ function Navbar() {
         return () => unsubscribe();
     }, []);
 
-    // Function to close the mobile menu
+
     const closeMenu = () => {
         setMenuOpen(false);
     };
 
-    // Handle user logout process with a confirmation prompt
-    const handleLogout = async () => {
-        const confirmLogout = window.confirm(
-            "Are you sure you want to logout?"
-        );
-        if (!confirmLogout) {
-            return;
-        }
-        try {
-            await signOut(auth);
-            closeMenu();
-            navigate("/");
-        } catch (error) {
-            console.error("Logout error:", error);
-        }
-    };
+
+const handleLogout = async () => {
+
+    const confirmLogout = window.confirm(
+        "Are you sure you want to logout?"
+    );
+
+    if (!confirmLogout) {
+        return;
+    }
+
+    try {
+        await signOut(auth);
+        closeMenu();
+        navigate("/");
+    } catch (error) {
+        console.error("Logout error:", error);
+    }
+};
+
 
     return (
+
         <header className="nav-wrap">
+
             <nav className="nav container">
-                {/* Brand Logo and Name Section */}
+
+
                 <Link
                     className="brand"
                     to="/"
                     onClick={closeMenu}
-                    style={{ 
-                        display: "flex", 
-                        alignItems: "center", 
-                        gap: "0px" 
-                    }}
                 >
-                    <img 
-                        src={logoImage} 
-                        alt="FitLife Logo" 
-                        style={{ 
-                            height: "75px", 
-                            width: "auto", 
-                            marginRight: "-2px" 
-                        }} 
-                    />
+
+                    <span className="brand-mark">
+                        F
+                    </span>
+
                     <span>
                         Fit<span>Life</span>
                     </span>
                 </Link>
 
-                {/* Mobile Menu Toggle Button */}
+
                 <button
                     className="menu"
                     onClick={() => setMenuOpen(!menuOpen)}
@@ -85,8 +81,14 @@ function Navbar() {
                     ☰
                 </button>
 
-                {/* Navigation Links and Authentication Actions */}
-                <div className={`nav-links ${menuOpen ? "show" : ""}`}>
+
+                <div
+                    className={`nav-links ${
+                        menuOpen ? "show" : ""
+                    }`}
+                >
+
+
                     <Link
                         className={location.pathname === "/" ? "active" : ""}
                         to="/"
@@ -127,7 +129,7 @@ function Navbar() {
                         About
                     </Link>
 
-                    {/* Conditional rendering based on user authentication status */}
+
                     {!user ? (
                         <>
                             <Link
