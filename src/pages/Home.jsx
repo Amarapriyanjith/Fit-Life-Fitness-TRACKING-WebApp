@@ -1,5 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+// Import the hero image properly from the src/assets folder
+import heroImage from '../assets/images/hero-fitness.jpg';
 
 export default function Home() {
   return (
@@ -18,7 +20,7 @@ export default function Home() {
               <Link className="btn ghost" to="/workouts">Explore Workouts</Link>
             </div>
             <div className="mini-proof">
-              <div className="avatars"><i>G</i><i>F</i><i>L</i><i>+</i></div>
+              <div className="avatars" aria-hidden="true"><i>G</i><i>F</i><i>L</i><i>+</i></div>
               <div>
                 <strong>Made for real beginners</strong>
                 <small>Simple plans. Clear goals. No intimidation.</small>
@@ -26,11 +28,12 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Hero visual image */}
+          {/* Hero visual image card */}
           <div className="hero-card" style={{ padding: 0, overflow: 'hidden', background: 'transparent' }}>
             <img 
-              src="public\images\hero-fitness.jpg.jpg" 
-              alt="Fitness training" 
+              src={heroImage} 
+              alt="Beginner working out with professional guidance" 
+              loading="lazy"
               style={{
                 width: '100%',
                 height: '100%',
@@ -57,19 +60,19 @@ export default function Home() {
           
           <div className="feature-grid">
             <Link className="feature" to="/workouts">
-              <div className="icon">⚡</div>
+              <div className="icon" aria-hidden="true">⚡</div>
               <h3>Personalized Workouts</h3>
               <p>Choose beginner, intermediate or advanced plans that match your fitness level.</p>
               <b>View plans →</b>
             </Link>
             <Link className="feature" to="/nutrition">
-              <div className="icon">🥗</div>
+              <div className="icon" aria-hidden="true">🥗</div>
               <h3>Simple Meal Plans</h3>
               <p>Understandable daily meal ideas with calorie-aware choices and practical portions.</p>
               <b>Plan meals →</b>
             </Link>
             <Link className="feature" to="/tracking">
-              <div className="icon">📊</div>
+              <div className="icon" aria-hidden="true">📊</div>
               <h3>Track Your Progress</h3>
               <p>Monitor BMI, water, calories and your progress through a clear dashboard.</p>
               <b>See tracking →</b>
@@ -103,7 +106,7 @@ export default function Home() {
       <section className="section">
         <div className="container">
           <div className="quote">
-            <div className="quote-mark">“</div>
+            <div className="quote-mark" aria-hidden="true">“</div>
             <div>
               <h3>Small habits become big results.</h3>
               <p>Whether you're starting from zero or rebuilding your routine, FitLife is designed to help you stay consistent.</p>
@@ -114,4 +117,4 @@ export default function Home() {
       </section>
     </div>
   );
-}
+}got
