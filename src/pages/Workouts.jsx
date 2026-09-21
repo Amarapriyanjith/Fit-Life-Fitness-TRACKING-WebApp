@@ -168,36 +168,42 @@ exercises: [
             desc: "A balanced workout combining strength and cardio movements.",
             tag: "30 MINS",
 
-            exercises: [
+           exercises: [
                 {
                     id: "fbb-1",
-                    name: "Jumping Jacks",
-                    duration: 5
+                    name: "Standing Knee-to-Elbow",
+                    duration: 5,
+                    videoUrl: "/videos/standing-knee-to-elbow.mp4"
                 },
                 {
                     id: "fbb-2",
-                    name: "Bodyweight Squats",
-                    duration: 5
+                    name: "Mountain Climbers",
+                    duration: 5,
+                    videoUrl: "/videos/mountain-climbers.mp4"
                 },
                 {
                     id: "fbb-3",
-                    name: "Push-Ups",
-                    duration: 5
+                    name: "Plank Shoulder Taps",
+                    duration: 5,
+                    videoUrl: "/videos/plank-shoulder-taps.mp4"
                 },
                 {
                     id: "fbb-4",
-                    name: "Reverse Lunges",
-                    duration: 5
+                    name: "Bicycle Crunches",
+                    duration: 5,
+                    videoUrl: "/videos/bicycle-crunches.mp4"
                 },
                 {
                     id: "fbb-5",
-                    name: "Mountain Climbers",
-                    duration: 5
+                    name: "Bird Dog",
+                    duration: 5,
+                    videoUrl: "/videos/bird-dog.mp4"
                 },
                 {
                     id: "fbb-6",
-                    name: "Plank",
-                    duration: 5
+                    name: "Dead Bug",
+                    duration: 5,
+                    videoUrl: "/videos/dead-bug.mp4"
                 }
             ]
         },
@@ -211,33 +217,39 @@ exercises: [
             exercises: [
                 {
                     id: "ubf-1",
-                    name: "Push-Ups",
-                    duration: 5
+                    name: "Chest Press",
+                    duration: 5,
+                    videoUrl: "/videos/chest-press.mp4"
                 },
                 {
                     id: "ubf-2",
-                    name: "Shoulder Taps",
-                    duration: 5
+                    name: "Shoulder Press",
+                    duration: 5,
+                    videoUrl: "/videos/shoulder-press.mp4"
                 },
                 {
                     id: "ubf-3",
-                    name: "Tricep Dips",
-                    duration: 5
+                    name: "Plank Shoulder Taps",
+                    duration: 5,
+                    videoUrl: "/videos/plank-shoulder-taps.mp4"
                 },
                 {
                     id: "ubf-4",
-                    name: "Plank",
-                    duration: 5
+                    name: "Wall Push-Ups",
+                    duration: 5,
+                    videoUrl: "/videos/wall-pushups.mp4"
                 },
                 {
                     id: "ubf-5",
-                    name: "Pike Push-Ups",
-                    duration: 5
+                    name: "Shoulder Circles",
+                    duration: 5,
+                    videoUrl: "/videos/shoulder-circles.mp4"
                 },
                 {
                     id: "ubf-6",
-                    name: "Superman",
-                    duration: 5
+                    name: "Bird Dog",
+                    duration: 5,
+                    videoUrl: "/videos/bird-dog.mp4"
                 }
             ]
         },
@@ -251,33 +263,39 @@ exercises: [
             exercises: [
                 {
                     id: "lbp-1",
-                    name: "Squats",
-                    duration: 5
+                    name: "Goblet Squats",
+                    duration: 5,
+                    videoUrl: "/videos/goblet-squats.mp4"
                 },
                 {
                     id: "lbp-2",
-                    name: "Reverse Lunges",
-                    duration: 5
+                    name: "Romanian Deadlifts",
+                    duration: 5,
+                    videoUrl: "/videos/romanian-deadlifts.mp4"
                 },
                 {
                     id: "lbp-3",
-                    name: "Glute Bridges",
-                    duration: 5
+                    name: "Bodyweight Squats",
+                    duration: 5,
+                    videoUrl: "/videos/squats.mp4"
                 },
                 {
                     id: "lbp-4",
-                    name: "Jump Squats",
-                    duration: 5
+                    name: "Wall Sit",
+                    duration: 5,
+                    videoUrl: "/videos/wall-sit.mp4"
                 },
                 {
                     id: "lbp-5",
-                    name: "Calf Raises",
-                    duration: 5
+                    name: "Chair Calf Raises",
+                    duration: 5,
+                    videoUrl: "/videos/chair-calf-raises.mp4"
                 },
                 {
                     id: "lbp-6",
-                    name: "Wall Sit",
-                    duration: 5
+                    name: "Brisk Walking",
+                    duration: 5,
+                    videoUrl: "/videos/brisk-walking.mp4"
                 }
             ]
         }
