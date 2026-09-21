@@ -66,38 +66,50 @@ exercises: [
             desc: "Gentle movements and stretches to improve flexibility and mobility.",
             tag: "30 MINS",
 
+ 
+            icon: "🧘",
+            title: "Mobility & Stretch",
+            desc: "Gentle movements and stretches to improve flexibility and mobility.",
+            tag: "30 MINS",
             exercises: [
                 {
                     id: "mas-1",
-                    name: "Neck Stretch",
-                    duration: 5
+                    name: "Easy Marching",
+                    duration: 5,
+                    videoUrl: "/videos/easy-march.mp4"
                 },
                 {
                     id: "mas-2",
-                    name: "Shoulder Rolls",
-                    duration: 5
+                    name: "High Knee Lifts",
+                    duration: 5,
+                    videoUrl: "/videos/knee-lifts.mp4"
                 },
                 {
                     id: "mas-3",
-                    name: "Arm Circles",
-                    duration: 5
+                    name: "Lateral Side Steps",
+                    duration: 5,
+                    videoUrl: "/videos/side-steps.mp4"
                 },
                 {
                     id: "mas-4",
-                    name: "Torso Rotation",
-                    duration: 5
+                    name: "Side Step Touch",
+                    duration: 5,
+                    videoUrl: "/videos/step-touch.mp4"
                 },
                 {
                     id: "mas-5",
-                    name: "Hip Circles",
-                    duration: 5
+                    name: "Brisk March",
+                    duration: 5,
+                    videoUrl: "/videos/brisk-march.mp4"
                 },
                 {
                     id: "mas-6",
-                    name: "Hamstring Stretch",
-                    duration: 5
+                    name: "Torso Rotations",
+                    duration: 5,
+                    videoUrl: "/videos/torso-rotations.mp4"
                 }
             ]
+        
         },
 
         {
@@ -106,36 +118,42 @@ exercises: [
             desc: "Build basic strength using simple bodyweight exercises.",
             tag: "30 MINS",
 
-            exercises: [
+           exercises: [
                 {
                     id: "bgs-1",
-                    name: "Bodyweight Squats",
-                    duration: 5
+                    name: "Wall Push-Ups",
+                    duration: 5,
+                    videoUrl: "/videos/wall-pushups.mp4"
                 },
                 {
                     id: "bgs-2",
-                    name: "Wall Push-Ups",
-                    duration: 5
+                    name: "Wall Sit",
+                    duration: 5,
+                    videoUrl: "/videos/wall-sit.mp4"
                 },
                 {
                     id: "bgs-3",
-                    name: "Glute Bridges",
-                    duration: 5
+                    name: "Chair Calf Raises",
+                    duration: 5,
+                    videoUrl: "/videos/chair-calf-raises.mp4"
                 },
                 {
                     id: "bgs-4",
-                    name: "Chair Squats",
-                    duration: 5
+                    name: "Seated Knee Raises",
+                    duration: 5,
+                    videoUrl: "/videos/seated-knee-raises.mp4"
                 },
                 {
                     id: "bgs-5",
-                    name: "Bird Dog",
-                    duration: 5
+                    name: "Seated Leg Extensions",
+                    duration: 5,
+                    videoUrl: "/videos/seated-leg-extensions.mp4"
                 },
                 {
                     id: "bgs-6",
-                    name: "Standing Calf Raises",
-                    duration: 5
+                    name: "Bodyweight Squats",
+                    duration: 5,
+                    videoUrl: "/videos/squats.mp4"
                 }
             ]
         }
