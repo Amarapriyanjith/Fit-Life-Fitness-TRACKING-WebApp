@@ -310,36 +310,42 @@ exercises: [
             desc: "A high-intensity workout combining explosive cardio movements.",
             tag: "30 MINS",
 
-            exercises: [
+           exercises: [
                 {
                     id: "hic-1",
-                    name: "Burpees",
-                    duration: 5
+                    name: "Mountain Climbers",
+                    duration: 5,
+                    videoUrl: "/videos/mountain-climbers.mp4"
                 },
                 {
                     id: "hic-2",
-                    name: "Jump Squats",
-                    duration: 5
+                    name: "Standing Knee-to-Elbow",
+                    duration: 5,
+                    videoUrl: "/videos/standing-knee-to-elbow.mp4"
                 },
                 {
                     id: "hic-3",
-                    name: "Mountain Climbers",
-                    duration: 5
+                    name: "Bodyweight Squats",
+                    duration: 5,
+                    videoUrl: "/videos/squats.mp4"
                 },
                 {
                     id: "hic-4",
-                    name: "High Knees",
-                    duration: 5
+                    name: "Brisk March",
+                    duration: 5,
+                    videoUrl: "/videos/brisk-march.mp4"
                 },
                 {
                     id: "hic-5",
-                    name: "Plank Jacks",
-                    duration: 5
+                    name: "Plank Shoulder Taps",
+                    duration: 5,
+                    videoUrl: "/videos/plank-shoulder-taps.mp4"
                 },
                 {
                     id: "hic-6",
-                    name: "Skater Jumps",
-                    duration: 5
+                    name: "Brisk Walking",
+                    duration: 5,
+                    videoUrl: "/videos/brisk-walking.mp4"
                 }
             ]
         },
@@ -350,36 +356,42 @@ exercises: [
             desc: "A challenging circuit focused on full-body strength development.",
             tag: "30 MINS",
 
-            exercises: [
+           exercises: [
                 {
                     id: "sc-1",
                     name: "Goblet Squats",
-                    duration: 5
+                    duration: 5,
+                    videoUrl: "/videos/goblet-squats.mp4"
                 },
                 {
                     id: "sc-2",
-                    name: "Push-Ups",
-                    duration: 5
+                    name: "Shoulder Press",
+                    duration: 5,
+                    videoUrl: "/videos/shoulder-press.mp4"
                 },
                 {
                     id: "sc-3",
-                    name: "Dumbbell Rows",
-                    duration: 5
+                    name: "Romanian Deadlifts",
+                    duration: 5,
+                    videoUrl: "/videos/romanian-deadlifts.mp4"
                 },
                 {
                     id: "sc-4",
-                    name: "Walking Lunges",
-                    duration: 5
+                    name: "Chest Press",
+                    duration: 5,
+                    videoUrl: "/videos/chest-press.mp4"
                 },
                 {
                     id: "sc-5",
-                    name: "Shoulder Press",
-                    duration: 5
+                    name: "Wall Push-Ups",
+                    duration: 5,
+                    videoUrl: "/videos/wall-pushups.mp4"
                 },
                 {
                     id: "sc-6",
-                    name: "Plank to Push-Up",
-                    duration: 5
+                    name: "Plank Shoulder Taps",
+                    duration: 5,
+                    videoUrl: "/videos/plank-shoulder-taps.mp4"
                 }
             ]
         },
@@ -393,33 +405,39 @@ exercises: [
             exercises: [
                 {
                     id: "ac-1",
-                    name: "Sprint in Place",
-                    duration: 5
+                    name: "Jogging in Place",
+                    duration: 5,
+                    videoUrl: "/videos/jogging-in-place.mp4"
                 },
                 {
                     id: "ac-2",
-                    name: "Box Jumps",
-                    duration: 5
+                    name: "Step-Up Exercise",
+                    duration: 5,
+                    videoUrl: "/videos/step-up.mp4"
                 },
                 {
                     id: "ac-3",
-                    name: "Burpees",
-                    duration: 5
+                    name: "Lateral Skater",
+                    duration: 5,
+                    videoUrl: "/videos/lateral-skater.mp4"
                 },
                 {
                     id: "ac-4",
-                    name: "Lateral Bounds",
-                    duration: 5
+                    name: "Fast Walking Cardio",
+                    duration: 5,
+                    videoUrl: "/videos/walking-fast.mp4"
                 },
                 {
                     id: "ac-5",
-                    name: "Mountain Climbers",
-                    duration: 5
+                    name: "Athletic Marching",
+                    duration: 5,
+                    videoUrl: "/videos/athletic-march.mp4"
                 },
                 {
                     id: "ac-6",
-                    name: "High Knees",
-                    duration: 5
+                    name: "Cardio Routine",
+                    duration: 5,
+                    videoUrl: "/videos/cardio-routine.mp4"
                 }
             ]
         }
