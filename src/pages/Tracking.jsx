@@ -10,36 +10,51 @@ import {
 import { auth, db } from "../firebase";
 import { onAuthStateChanged } from "firebase/auth";
 
-import trackingBg from "../assets/images/tracking.jpg";
-
 export default function Tracking() {
 
     const [height, setHeight] = useState("");
+
     const [weight, setWeight] = useState("");
+
     const [bmiResult, setBmiResult] = useState(
         "Your result will appear here."
     );
+
     const [recommendation, setRecommendation] = useState("");
+
     const [saving, setSaving] = useState(false);
+
     const [waterCount, setWaterCount] = useState(0);
+
     const [calories, setCalories] = useState(0);
+
     const [calorieInput, setCalorieInput] = useState("");
-    const [weeklyStreak, setWeeklyStreak] = useState(0); 
-    const [weeklyProgress, setWeeklyProgress] = useState([]);   
+
+    const [weeklyStreak, setWeeklyStreak] = useState(0);
+
+    const [weeklyProgress, setWeeklyProgress] = useState([]);
+
 
     // Load today's water and weekly activity
     useEffect(() => {
+
         const loadTrackingData = async (user) => {
+
             try {
+
                 // Get today's date
                 const now = new Date();
+
                 const offset = now.getTimezoneOffset();
+
                 const localDate = new Date(
                     now.getTime() - offset * 60000
                 );
+
                 const today = localDate
                     .toISOString()
                     .slice(0, 10);
+
 
                 // Load water intake
                 const waterSnapshot = await getDocs(
@@ -56,23 +71,35 @@ export default function Tracking() {
                 );
 
                 if (todayWater) {
+
                     setWaterCount(
                         todayWater.data().glasses || 0
                     );
+
                 } else {
+
                     setWaterCount(0);
+
                 }
+
 
                 // Find active days
                 const activeDates = new Set();
 
+
                 // Water activity
                 waterSnapshot.docs.forEach((item) => {
+
                     const data = item.data();
+
                     if (data.glasses > 0) {
+
                         activeDates.add(item.id);
+
                     }
+
                 });
+
 
                 // Load today's calories
                 const calorieSnapshot = await getDocs(
@@ -90,11 +117,18 @@ export default function Tracking() {
                     );
 
                 if (todayCalories) {
+
                     setCalories(
                         todayCalories.data().calories || 0
                     );
+<<<<<<< HEAD
+=======
+
+>>>>>>> b37b69729f4409aeea9fdc1093f7477d33b0cc80
                 } else {
+
                     setCalories(0);
+<<<<<<< HEAD
                 }
 
                 // Add calorie activity dates
@@ -105,6 +139,26 @@ export default function Tracking() {
                     }
                 });
 
+=======
+
+                }
+
+
+                // Add calorie activity dates
+                calorieSnapshot.docs.forEach((item) => {
+
+                    const data = item.data();
+
+                    if (data.calories > 0) {
+
+                        activeDates.add(item.id);
+
+                    }
+
+                });
+
+
+>>>>>>> b37b69729f4409aeea9fdc1093f7477d33b0cc80
                 // Workout activity
                 const workoutSnapshot = await getDocs(
                     collection(
@@ -116,16 +170,27 @@ export default function Tracking() {
                 );
 
                 workoutSnapshot.docs.forEach((item) => {
+<<<<<<< HEAD
                     const data = item.data();
+=======
+
+                    const data = item.data();
+
+>>>>>>> b37b69729f4409aeea9fdc1093f7477d33b0cc80
                     if (
                         data.completed === true &&
                         data.completedAt
                     ) {
+<<<<<<< HEAD
+=======
+
+>>>>>>> b37b69729f4409aeea9fdc1093f7477d33b0cc80
                         const completedDate =
                             data.completedAt
                                 .toDate()
                                 .toISOString()
                                 .slice(0, 10);
+<<<<<<< HEAD
                         activeDates.add(completedDate);
                     }
                 });
@@ -137,14 +202,40 @@ export default function Tracking() {
                 for (let i = 0; i < 7; i++) {
                     const offset =
                         checkDate.getTimezoneOffset();
+=======
+
+                        activeDates.add(completedDate);
+
+                    }
+
+                });
+
+
+                // Calculate 7-day streak
+
+                let streak = 0;
+
+                const checkDate = new Date();
+
+                for (let i = 0; i < 7; i++) {
+
+                    const offset =
+                        checkDate.getTimezoneOffset();
+
+>>>>>>> b37b69729f4409aeea9fdc1093f7477d33b0cc80
                     const localCheckDate = new Date(
                         checkDate.getTime() -
                         offset * 60000
                     );
+<<<<<<< HEAD
+=======
+
+>>>>>>> b37b69729f4409aeea9fdc1093f7477d33b0cc80
                     const dateKey = localCheckDate
                         .toISOString()
                         .slice(0, 10);
 
+<<<<<<< HEAD
                     if (activeDates.has(dateKey)) {
                         streak++;
                         checkDate.setDate(
@@ -153,10 +244,28 @@ export default function Tracking() {
                     } else {
                         break;
                     }
+=======
+
+                    if (activeDates.has(dateKey)) {
+
+                        streak++;
+
+                        checkDate.setDate(
+                            checkDate.getDate() - 1
+                        );
+
+                    } else {
+
+                        break;
+
+                    }
+
+>>>>>>> b37b69729f4409aeea9fdc1093f7477d33b0cc80
                 }
 
                 setWeeklyStreak(streak);
 
+<<<<<<< HEAD
                 // Build 7-day progress history
                 const progressData = [];
 
@@ -168,26 +277,70 @@ export default function Tracking() {
                     const localDate = new Date(
                         date.getTime() - offset * 60000
                     );
+=======
+
+                // Build 7-day progress history
+
+                const progressData = [];
+
+                for (let i = 6; i >= 0; i--) {
+
+                    const date = new Date();
+
+                    date.setDate(
+                        date.getDate() - i
+                    );
+
+                    const offset =
+                        date.getTimezoneOffset();
+
+                    const localDate = new Date(
+                        date.getTime() -
+                        offset * 60000
+                    );
+
+>>>>>>> b37b69729f4409aeea9fdc1093f7477d33b0cc80
                     const dateKey = localDate
                         .toISOString()
                         .slice(0, 10);
 
+<<<<<<< HEAD
                     // Water
                     const waterDoc = waterSnapshot.docs.find(
                         (item) => item.id === dateKey
                     );
+=======
+
+                    // Water
+                    const waterDoc =
+                        waterSnapshot.docs.find(
+                            (item) => item.id === dateKey
+                        );
+
+>>>>>>> b37b69729f4409aeea9fdc1093f7477d33b0cc80
                     const water = waterDoc
                         ? waterDoc.data().glasses || 0
                         : 0;
 
+<<<<<<< HEAD
                     // Calories
                     const calorieDoc = calorieSnapshot.docs.find(
                         (item) => item.id === dateKey
                     );
+=======
+
+                    // Calories
+                    const calorieDoc =
+                        calorieSnapshot.docs.find(
+                            (item) => item.id === dateKey
+                        );
+
+>>>>>>> b37b69729f4409aeea9fdc1093f7477d33b0cc80
                     const dailyCalories = calorieDoc
                         ? calorieDoc.data().calories || 0
                         : 0;
 
+<<<<<<< HEAD
                     // Workouts
                     const dailyWorkouts = workoutSnapshot.docs.filter(
                         (item) => {
@@ -208,6 +361,34 @@ export default function Tracking() {
                             );
                         }
                     ).length;
+=======
+
+                    // Workouts
+                    const dailyWorkouts =
+                        workoutSnapshot.docs.filter(
+                            (item) => {
+
+                                const data = item.data();
+
+                                return (
+                                    data.completed === true &&
+                                    (
+                                        data.completedDate === dateKey ||
+                                        (
+                                            !data.completedDate &&
+                                            data.completedAt &&
+                                            data.completedAt
+                                                .toDate()
+                                                .toISOString()
+                                                .slice(0, 10) === dateKey
+                                        )
+                                    )
+                                );
+
+                            }
+                        ).length;
+
+>>>>>>> b37b69729f4409aeea9fdc1093f7477d33b0cc80
 
                     progressData.push({
                         date: dateKey,
@@ -215,55 +396,96 @@ export default function Tracking() {
                         calories: dailyCalories,
                         workouts: dailyWorkouts
                     });
+
                 }
 
                 setWeeklyProgress(progressData);
 
+
             } catch (error) {
+
                 console.error(
                     "Error loading tracking data:",
                     error
                 );
+
             }
+
         };
+
 
         const unsubscribe = onAuthStateChanged(
             auth,
             (user) => {
+
                 if (user) {
+
                     loadTrackingData(user);
+
                 } else {
+
                     setWaterCount(0);
+
                     setCalories(0);
+
                     setWeeklyStreak(0);
+
+                    setWeeklyProgress([]);
+
                 }
+
             }
         );
 
+
         return () => unsubscribe();
+
     }, []);
+
 
     // Save today's calories
     const handleSaveCalories = async (e) => {
+
         e.preventDefault();
 
         const user = auth.currentUser;
-        if (!user) return;
 
-        const calorieValue = parseInt(calorieInput, 10);
-        if (!calorieValue || calorieValue < 0) return;
+        if (!user) {
+
+            return;
+
+        }
+
+
+        const calorieValue =
+            parseInt(calorieInput, 10);
+
+        if (!calorieValue || calorieValue < 0) {
+
+            return;
+
+        }
+
 
         setSaving(true);
 
+
         try {
+
             const now = new Date();
-            const offset = now.getTimezoneOffset();
+
+            const offset =
+                now.getTimezoneOffset();
+
             const localDate = new Date(
-                now.getTime() - offset * 60000
+                now.getTime() -
+                offset * 60000
             );
+
             const today = localDate
                 .toISOString()
                 .slice(0, 10);
+
 
             const calorieDocRef = doc(
                 db,
@@ -273,7 +495,11 @@ export default function Tracking() {
                 today
             );
 
-            const newCalories = calories + calorieValue;
+
+            // Add the new calories to today's existing calories
+            const newCalories =
+                calories + calorieValue;
+
 
             await setDoc(
                 calorieDocRef,
@@ -282,68 +508,161 @@ export default function Tracking() {
                     date: today,
                     updatedAt: serverTimestamp()
                 },
-                { merge: true }
+                {
+                    merge: true
+                }
             );
 
+
+            // Update the screen
             setCalories(newCalories);
+
+
+            // Clear input
             setCalorieInput("");
+
+
+            console.log(
+                "Calories added successfully:",
+                calorieValue,
+                "Total:",
+                newCalories
+            );
+
+
         } catch (error) {
-            console.error("Error saving calories:", error);
+
+            console.error(
+                "Error saving calories:",
+                error
+            );
+
         } finally {
+
             setSaving(false);
+
         }
+
     };
+
 
     // Calculate BMI
     const handleCalculateBMI = async (e) => {
+
         e.preventDefault();
 
-        if (!height || !weight) return;
 
-        const hInMeters = parseFloat(height) / 100;
-        const wInKg = parseFloat(weight);
+        if (!height || !weight) {
 
-        if (hInMeters <= 0 || wInKg <= 0) {
+            return;
+
+        }
+
+
+        const hInMeters =
+            parseFloat(height) / 100;
+
+        const wInKg =
+            parseFloat(weight);
+
+
+        if (
+            hInMeters <= 0 ||
+            wInKg <= 0
+        ) {
+
             setBmiResult(
                 "Please enter valid height and weight values."
             );
+
             setRecommendation("");
+
             return;
+
         }
 
-        const bmiValue = wInKg / (hInMeters * hInMeters);
-        const bmi = bmiValue.toFixed(1);
+
+        // Calculate BMI
+        const bmiValue =
+            wInKg /
+            (hInMeters * hInMeters);
+
+
+        const bmi =
+            bmiValue.toFixed(1);
+
+
+        // Check BMI category
 
         let status = "";
+
         let healthRecommendation = "";
 
+
         if (bmiValue < 18.5) {
+
             status = "Underweight";
+
             healthRecommendation =
                 "Focus on balanced meals with enough calories, protein, fruits, and vegetables. Consider speaking with a healthcare professional about healthy weight gain.";
-        } else if (bmiValue >= 18.5 && bmiValue < 25) {
+
+        } else if (
+            bmiValue >= 18.5 &&
+            bmiValue < 25
+        ) {
+
             status = "Normal weight";
+
             healthRecommendation =
                 "Your BMI is within the normal range. Maintain a balanced diet, regular physical activity, good hydration, and consistent healthy habits.";
-        } else if (bmiValue >= 25 && bmiValue < 30) {
+
+        } else if (
+            bmiValue >= 25 &&
+            bmiValue < 30
+        ) {
+
             status = "Overweight";
+
             healthRecommendation =
                 "Focus on regular physical activity, balanced meals, portion control, and healthy hydration. Gradual lifestyle changes can support a healthier weight.";
+
         } else {
+
             status = "Obese";
+
             healthRecommendation =
                 "Focus on gradual healthy lifestyle changes, regular physical activity, and balanced nutrition. Consider discussing your health goals with a healthcare professional.";
+
         }
 
-        setBmiResult(`Your BMI is ${bmi} (${status})`);
-        setRecommendation(healthRecommendation);
+
+        setBmiResult(
+            `Your BMI is ${bmi} (${status})`
+        );
+
+
+        setRecommendation(
+            healthRecommendation
+        );
+
+
+        // Save BMI result to Firestore
 
         const user = auth.currentUser;
-        if (!user) return;
+
+
+        if (!user) {
+
+            return;
+
+        }
+
 
         setSaving(true);
 
+
         try {
+
             const bmiDocRef = doc(
                 db,
                 "users",
@@ -352,6 +671,7 @@ export default function Tracking() {
                 "bmi"
             );
 
+
             await setDoc(
                 bmiDocRef,
                 {
@@ -359,80 +679,87 @@ export default function Tracking() {
                     weight: parseFloat(weight),
                     bmi: parseFloat(bmi),
                     status: status,
-                    recommendation: healthRecommendation,
+                    recommendation:
+                        healthRecommendation,
                     updatedAt: serverTimestamp()
                 },
-                { merge: true }
+                {
+                    merge: true
+                }
             );
+
+
+            console.log(
+                "BMI saved successfully:",
+                bmi
+            );
+
+
         } catch (error) {
-            console.error("Error saving BMI:", error);
+
+            console.error(
+                "Error saving BMI:",
+                error
+            );
+
         }
 
+
         setSaving(false);
+
     };
 
+
     return (
+
         <div>
+
             <main>
 
-                {/* Hero section with Right Background Image and Left Fade */}
-                <section 
-                    className="page-hero"
-                    style={{
-                        position: "relative",
-                        overflow: "hidden",
-                        minHeight: "260px",
-                        display: "flex",
-                        alignItems: "center"
-                    }}
-                >
-                    {/* Background shaded image */}
-                    <div 
-                        style={{
-                            position: "absolute",
-                            top: 0,
-                            right: 0,
-                            width: "55%",
-                            height: "100%",
-                            backgroundImage: `url(${trackingBg})`,
-                            backgroundSize: "cover",
-                            backgroundPosition: "center",
-                            WebkitMaskImage: "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,1) 100%)",
-                            maskImage: "linear-gradient(to right, transparent 0%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,1) 100%)",
-                            pointerEvents: "none",
-                            zIndex: 1
-                        }} 
-                    />
+                <section className="page-hero">
 
-                    <div className="container" style={{ position: "relative", zIndex: 2 }}>
+                    <div className="container">
 
                         <div className="eyebrow">
                             KNOW YOUR PROGRESS
                         </div>
 
+
                         <h1>
+
                             Track the habits that
+
                             <br />
+
                             <span>
                                 move you forward.
                             </span>
+
                         </h1>
 
-                        <p style={{ maxWidth: "560px" }}>
+
+                        <p>
+
                             FitLife keeps the important numbers
                             visible without turning fitness into
                             a spreadsheet.
+
                         </p>
 
                     </div>
 
                 </section>
 
+
                 <section className="section">
 
                     <div className="container">
 
+
                         <div className="stats-grid">
+
+
+                            {/* WATER */}
 
                             <div className="stat-card">
 
@@ -440,20 +767,32 @@ export default function Tracking() {
                                     WATER
                                 </span>
 
+
                                 <strong>
+
                                     {(waterCount * 0.3125).toFixed(1)}
+
                                     <small>
                                         / 2.5 L
                                     </small>
+
                                 </strong>
 
+
                                 <div className="progress">
+
                                     <i
                                         style={{
-                                            width: `${Math.min((waterCount / 8) * 100, 100)}%`
+                                            width:
+                                                `${Math.min(
+                                                    (waterCount / 8) * 100,
+                                                    100
+                                                )}%`
                                         }}
                                     ></i>
+
                                 </div>
+
 
                                 <p>
                                     8 glasses goal
@@ -461,34 +800,52 @@ export default function Tracking() {
 
                             </div>
 
+
+                            {/* CALORIES */}
+
                             <div className="stat-card">
 
                                 <span>
                                     ACTIVE CALORIES
                                 </span>
 
+
                                 <strong>
+
                                     {calories}
+
                                     <small>
                                         kcal
                                     </small>
+
                                 </strong>
 
+
                                 <div className="progress">
+
                                     <i
                                         style={{
-                                            width: `${Math.min((calories / 600) * 100, 100)}%`
+                                            width:
+                                                `${Math.min(
+                                                    (calories / 600) * 100,
+                                                    100
+                                                )}%`
                                         }}
                                     ></i>
+
                                 </div>
+
 
                                 <p>
                                     600 kcal target
                                 </p>
 
+
                                 <form
                                     className="calorie-form"
-                                    onSubmit={handleSaveCalories}
+                                    onSubmit={
+                                        handleSaveCalories
+                                    }
                                 >
 
                                     <input
@@ -504,19 +861,25 @@ export default function Tracking() {
                                         }
                                     />
 
+
                                     <button
                                         className="btn primary"
                                         type="submit"
                                         disabled={saving}
                                     >
+
                                         {saving
                                             ? "Saving..."
                                             : "Save Calories"}
+
                                     </button>
 
                                 </form>
 
                             </div>
+
+
+                            {/* STREAK */}
 
                             <div className="stat-card">
 
@@ -524,20 +887,36 @@ export default function Tracking() {
                                     WEEKLY STREAK
                                 </span>
 
+
                                 <strong>
+
                                     {weeklyStreak}
+
                                     <small>
                                         days
                                     </small>
+
                                 </strong>
 
+
                                 <div className="streak">
-                                    {[0, 1, 2, 3, 4, 5, 6].map((day) => (
-                                        <span key={day}>
-                                            {day < weeklyStreak ? "🔥" : "○"}
-                                        </span>
-                                    ))}
+
+                                    {[0, 1, 2, 3, 4, 5, 6].map(
+                                        (day) => (
+
+                                            <span key={day}>
+
+                                                {day < weeklyStreak
+                                                    ? "🔥"
+                                                    : "○"}
+
+                                            </span>
+
+                                        )
+                                    )}
+
                                 </div>
+
 
                                 <p>
                                     Keep your momentum
@@ -545,27 +924,45 @@ export default function Tracking() {
 
                             </div>
 
+
                         </div>
+
+
+                        {/* PROGRESS HISTORY */}
 
                         <div className="progress-history-card">
 
                             <div className="section-head">
 
                                 <div>
+
                                     <div className="eyebrow">
                                         PROGRESS HISTORY
                                     </div>
 
+
                                     <h2>
-                                        Your last <span>7 days.</span>
+
+                                        Your last{" "}
+
+                                        <span>
+                                            7 days.
+                                        </span>
+
                                     </h2>
+
                                 </div>
 
+
                                 <p>
-                                    Review your recent water, calorie, and workout activity.
+
+                                    Review your recent water,
+                                    calorie, and workout activity.
+
                                 </p>
 
                             </div>
+
 
                             <div className="progress-history">
 
@@ -576,43 +973,75 @@ export default function Tracking() {
                                         key={day.date}
                                     >
 
+
                                         <div className="progress-history-date">
+
                                             <strong>
+
                                                 {new Date(
                                                     `${day.date}T00:00:00`
                                                 ).toLocaleDateString(
                                                     "en-US",
-                                                    { weekday: "short" }
+                                                    {
+                                                        weekday: "short"
+                                                    }
                                                 )}
+
                                             </strong>
+
 
                                             <small>
                                                 {day.date}
                                             </small>
+
                                         </div>
 
+
                                         <div className="progress-history-item">
-                                            <span>💧 Water</span>
+
+                                            <span>
+                                                💧 Water
+                                            </span>
+
+
                                             <strong>
                                                 {day.water} / 8
                                             </strong>
+
                                         </div>
 
+
                                         <div className="progress-history-item">
-                                            <span>🔥 Calories</span>
+
+                                            <span>
+                                                🔥 Calories
+                                            </span>
+
+
                                             <strong>
                                                 {day.calories} kcal
                                             </strong>
+
                                         </div>
 
+
                                         <div className="progress-history-item">
-                                            <span>🏋️ Workout</span>
+
+                                            <span>
+                                                🏋️ Workout
+                                            </span>
+
+
                                             <strong>
+
                                                 {day.workouts > 0
                                                     ? "Completed"
                                                     : "Not completed"}
+
                                             </strong>
+
                                         </div>
+
 
                                     </div>
 
@@ -622,7 +1051,11 @@ export default function Tracking() {
 
                         </div>
 
+
+                        {/* BMI */}
+
                         <div className="bmi-box">
+
 
                             <div>
 
@@ -630,26 +1063,41 @@ export default function Tracking() {
                                     BMI CALCULATOR
                                 </div>
 
+
                                 <h2>
+
                                     Understand your{" "}
+
                                     <span>
                                         starting point.
                                     </span>
+
                                 </h2>
 
+
                                 <p>
+
                                     Enter your height and weight
                                     to calculate BMI. This is a
                                     general screening measure,
                                     not a diagnosis.
+
                                 </p>
 
                             </div>
 
-                            <form onSubmit={handleCalculateBMI}>
+
+                            <form
+                                onSubmit={
+                                    handleCalculateBMI
+                                }
+                            >
+
 
                                 <label>
+
                                     Height (cm)
+
                                     <input
                                         id="height"
                                         type="number"
@@ -664,10 +1112,14 @@ export default function Tracking() {
                                         }
                                         required
                                     />
+
                                 </label>
 
+
                                 <label>
+
                                     Weight (kg)
+
                                     <input
                                         id="weight"
                                         type="number"
@@ -682,44 +1134,58 @@ export default function Tracking() {
                                         }
                                         required
                                     />
+
                                 </label>
+
 
                                 <button
                                     className="btn primary"
                                     type="submit"
                                     disabled={saving}
                                 >
+
                                     {saving
                                         ? "Saving..."
                                         : "Calculate BMI"}
+
                                 </button>
+
 
                                 <div
                                     id="bmiResult"
                                     className="bmi-result"
                                 >
+
                                     {bmiResult}
+
                                 </div>
 
+
                                 {recommendation && (
+
                                     <div
                                         className="bmi-result"
                                         style={{
                                             marginTop: "15px"
                                         }}
                                     >
+
                                         <strong>
                                             Health Recommendation
                                         </strong>
+
                                         <p>
                                             {recommendation}
                                         </p>
+
                                     </div>
+
                                 )}
 
                             </form>
 
                         </div>
+
 
                     </div>
 
@@ -727,23 +1193,29 @@ export default function Tracking() {
 
             </main>
 
+
             <footer>
 
                 <div className="container footer">
 
                     <div className="brand">
+
                         <span className="brand-mark">
                             F
                         </span>
 
+
                         <span>
                             Fit<span>Life</span>
                         </span>
+
                     </div>
+
 
                     <p>
                         Smart personalized fitness for beginners.
                     </p>
+
 
                     <small>
                         © 2026 FitLife Project
@@ -754,5 +1226,6 @@ export default function Tracking() {
             </footer>
 
         </div>
+
     );
 }
