@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc, serverTimestamp } from "firebase/firestore";
-import { auth, db } from "../firebase";
+
+// Import separated backend auth service
+import { registerUser } from "../services/authService";
 
 function Register() {
     const [name, setName] = useState("");
@@ -12,31 +12,17 @@ function Register() {
 
     const navigate = useNavigate();
 
+    // Handle user registration form submission
     const handleRegister = async (e) => {
         e.preventDefault();
         setError("");
 
-        try {
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-            const user = userCredential.user;
+        const result = await registerUser(name, email, password);
 
-            await setDoc(doc(db, "users", user.uid), {
-                name: name,
-                email: email,
-                createdAt: serverTimestamp()
-            });
-
+        if (result.success) {
             navigate("/dashboard");
-        } catch (err) {
-            console.error(err);
-            if (err.code === 'auth/email-already-in-use') {
-                setError("This email is already registered! Please log in instead.");
-                alert("This email address is already in use. Please log in.");
-            } else if (err.code === 'auth/weak-password') {
-                setError("Password should be at least 6 characters long.");
-            } else {
-                setError(err.message);
-            }
+        } else {
+            setError(result.message);
         }
     };
 

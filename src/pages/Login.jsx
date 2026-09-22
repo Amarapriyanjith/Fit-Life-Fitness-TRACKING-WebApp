@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebase";
+
+// Import separated backend auth service
+import { loginUser } from "../services/authService";
 
 function Login() {
     const [email, setEmail] = useState("");
@@ -10,21 +11,18 @@ function Login() {
 
     const navigate = useNavigate();
 
-    // Handle user login and redirect to homepage upon success
+    // Handle user login form submission
     const handleLogin = async (e) => {
         e.preventDefault();
         setError("");
 
-        try {
-            await signInWithEmailAndPassword(auth, email, password);
-            // Redirect to the homepage instead of dashboard
-            navigate("/");
-        } catch (err) {
-            if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
-                setError("Invalid email or password. Please check your details.");
-            } else {
-                setError("Login failed. Please try again.");
-            }
+        const result = await loginUser(email, password);
+
+        if (result.success) {
+            // Redirect to the dashboard upon successful login
+            navigate("/dashboard");
+        } else {
+            setError(result.message);
         }
     };
 
