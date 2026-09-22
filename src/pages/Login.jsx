@@ -10,13 +10,15 @@ function Login() {
 
     const navigate = useNavigate();
 
+    // Handle user login and redirect to homepage upon success
     const handleLogin = async (e) => {
         e.preventDefault();
         setError("");
 
         try {
             await signInWithEmailAndPassword(auth, email, password);
-            navigate("/dashboard");
+            // Redirect to the homepage instead of dashboard
+            navigate("/");
         } catch (err) {
             if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
                 setError("Invalid email or password. Please check your details.");
@@ -31,7 +33,7 @@ function Login() {
             <div style={{ width: '100%', maxWidth: '440px', background: '#fff', border: '1px solid #e7ecf3', borderRadius: '20px', padding: '35px', boxShadow: '0 15px 35px rgba(16, 32, 58, 0.08)' }}>
                 <div style={{ fontSize: '11px', letterSpacing: '2px', fontWeight: '800', color: '#1769ff', marginBottom: '8px' }}>WELCOME BACK</div>
                 <h1 style={{ font: '800 28px/1.2 Outfit', margin: '0 0 8px', color: '#101828' }}>Log in to your <span style={{ color: '#1769ff' }}>FitLife account.</span></h1>
-                <p style={{ color: '#667085', fontSize: '14px', marginBottom: '25px' }}>Enter your details to access your dashboard.</p>
+                <p style={{ color: '#667085', fontSize: '14px', marginBottom: '25px' }}>Enter your details to access your account.</p>
 
                 <form onSubmit={handleLogin} style={{ display: 'grid', gap: '16px' }}>
                     <div>

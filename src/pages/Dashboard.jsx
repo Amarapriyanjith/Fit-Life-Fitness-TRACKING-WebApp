@@ -40,6 +40,11 @@ function Dashboard() {
 
     const [completedWorkouts, setCompletedWorkouts] = useState(() => Number(localStorage.getItem("fitlife_cache_completedWorkouts")) || 0);
 
+    // Beginner progression tracking states
+    const [beginnerCompletedCount, setBeginnerCompletedCount] = useState(0);
+    const [readyForIntermediate, setReadyForIntermediate] = useState(false);
+    const REQUIRED_TARGET = 20; // Beginner target (Requires 20 completed workouts)
+
     const [notificationsEnabled, setNotificationsEnabled] =
         useState(
             "Notification" in window &&
@@ -205,8 +210,8 @@ function Dashboard() {
                         setWorkout(latestWorkout);
                         localStorage.setItem("fitlife_cache_workout", JSON.stringify(latestWorkout));
 
-                        // Check if the latest workout is marked as completed
-                        const isCompleted = latestWorkout.completed === true;
+                        // Check if the latest workout is marked as completed for today
+                        const isCompleted = latestWorkout.completed === true && latestWorkout.lastActiveDate === today;
                         setWorkoutCompleted(isCompleted);
                         localStorage.setItem("fitlife_cache_workoutCompleted", isCompleted);
 
@@ -220,10 +225,25 @@ function Dashboard() {
                         setCompletedWorkouts(completedCount);
                         localStorage.setItem("fitlife_cache_completedWorkouts", completedCount);
 
+                        // Beginner progression tracking calculation
+                        const completedBeginners = workoutPlans.filter(
+                            (item) => item.level === "beginner" && item.completed === true
+                        ).length;
+
+                        setBeginnerCompletedCount(completedBeginners);
+
+                        if (completedBeginners >= REQUIRED_TARGET) {
+                            setReadyForIntermediate(true);
+                        } else {
+                            setReadyForIntermediate(false);
+                        }
+
                     } else {
                         setWorkout(null);
                         setWorkoutCompleted(false);
                         setCompletedWorkouts(0);
+                        setBeginnerCompletedCount(0);
+                        setReadyForIntermediate(false);
                         localStorage.removeItem("fitlife_cache_workout");
                         localStorage.setItem("fitlife_cache_workoutCompleted", "false");
                         localStorage.setItem("fitlife_cache_completedWorkouts", "0");
@@ -448,6 +468,38 @@ function Dashboard() {
 
 
                             <div className="dash-main">
+
+                                {/* Fitness Level Progression Banner */}
+                                <div className="dash-card" style={{ marginBottom: "20px", background: readyForIntermediate ? "#f0fdf4" : "#f8fafc", border: readyForIntermediate ? "1px solid #22c55e" : "1px solid #e2e8f0" }}>
+                                    <div className="card-title">
+                                        <h3>🚀 Fitness Level Progression</h3>
+                                        <span>{beginnerCompletedCount} / {REQUIRED_TARGET} Beginner Workouts</span>
+                                    </div>
+                                    
+                                    {readyForIntermediate ? (
+                                        <div>
+                                            <p style={{ color: "#166534", fontWeight: "600", marginTop: "8px" }}>
+                                                🎉 Congratulations! You have successfully passed the Beginner level. You can now access Intermediate workouts!
+                                            </p>
+                                            <button 
+                                                className="btn primary" 
+                                                style={{ marginTop: "12px" }}
+                                                onClick={() => navigate("/workouts")}
+                                            >
+                                                Explore Intermediate Workouts →
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            <p style={{ color: "#64748b", marginTop: "8px" }}>
+                                                Complete {REQUIRED_TARGET - beginnerCompletedCount} more beginner workouts to reach the Intermediate level. Keep going! 💪
+                                            </p>
+                                            <div className="progress" style={{ marginTop: "10px" }}>
+                                                <i style={{ width: `${Math.min((beginnerCompletedCount / REQUIRED_TARGET) * 100, 100)}%` }}></i>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
 
 
                                 <div className="dash-card score">
@@ -970,7 +1022,6 @@ function Dashboard() {
                                             }
 
                                         }
-
                                     }}
                                 >
                                     {notificationsEnabled

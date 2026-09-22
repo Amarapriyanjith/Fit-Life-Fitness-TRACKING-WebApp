@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import {
     addDoc,
     collection,
+    getDocs,
     serverTimestamp
 } from "firebase/firestore";
 import { auth, db } from "../firebase";
@@ -20,44 +21,44 @@ const workoutData = {
             title: "Full Body Starter",
             desc: "A simple full-body workout designed for beginners.",
             tag: "30 MINS",
-exercises: [
-        {
-          id: "fbs-1",
-          name: "Shoulder Circles",
-          duration: 2,
-          videoUrl: "/videos/shoulder-circles.mp4"
-        },
-        {
-          id: "fbs-2",
-          name: "Torso Rotations",
-          duration: 2,
-          videoUrl: "/videos/torso-rotations.mp4"
-        },
-        {
-          id: "fbs-3",
-          name: "Leg Swings",
-          duration: 3,
-          videoUrl: "/videos/leg-swings.mp4"
-        },
-        {
-          id: "fbs-4",
-          name: "Bodyweight Squats",
-          duration: 5,
-          videoUrl: "/videos/squats.mp4"
-        },
-        {
-          id: "fbs-5",
-          name: "Cat-Cow Stretch",
-          duration: 3,
-          videoUrl: "/videos/cat-cow.mp4"
-        },
-        {
-          id: "fbs-6",
-          name: "World's Greatest Stretch",
-          duration: 5,
-          videoUrl: "/videos/greatest-stretch.mp4"
-        }
-      ]
+            exercises: [
+                {
+                    id: "fbs-1",
+                    name: "Shoulder Circles",
+                    duration: 0.05,
+                    videoUrl: "/videos/shoulder-circles.mp4"
+                },
+                {
+                    id: "fbs-2",
+                    name: "Torso Rotations",
+                    duration: 0.05,
+                    videoUrl: "/videos/torso-rotations.mp4"
+                },
+                {
+                    id: "fbs-3",
+                    name: "Leg Swings",
+                    duration: 0.05,
+                    videoUrl: "/videos/leg-swings.mp4"
+                },
+                {
+                    id: "fbs-4",
+                    name: "Bodyweight Squats",
+                    duration: 0.05,
+                    videoUrl: "/videos/squats.mp4"
+                },
+                {
+                    id: "fbs-5",
+                    name: "Cat-Cow Stretch",
+                    duration: 0.05,
+                    videoUrl: "/videos/cat-cow.mp4"
+                },
+                {
+                    id: "fbs-6",
+                    name: "World's Greatest Stretch",
+                    duration: 0.05,
+                    videoUrl: "/videos/greatest-stretch.mp4"
+                }
+            ]
         },
 
         {
@@ -65,7 +66,6 @@ exercises: [
             title: "Mobility & Stretch",
             desc: "Gentle movements and stretches to improve flexibility and mobility.",
             tag: "30 MINS",
-
             exercises: [
                 {
                     id: "mas-1",
@@ -105,7 +105,6 @@ exercises: [
             title: "Beginner Strength",
             desc: "Build basic strength using simple bodyweight exercises.",
             tag: "30 MINS",
-
             exercises: [
                 {
                     id: "bgs-1",
@@ -149,7 +148,6 @@ exercises: [
             title: "Full Body Burn",
             desc: "A balanced workout combining strength and cardio movements.",
             tag: "30 MINS",
-
             exercises: [
                 {
                     id: "fbb-1",
@@ -189,7 +187,6 @@ exercises: [
             title: "Upper Body Focus",
             desc: "Strengthen your chest, shoulders, arms and upper back.",
             tag: "30 MINS",
-
             exercises: [
                 {
                     id: "ubf-1",
@@ -229,7 +226,6 @@ exercises: [
             title: "Lower Body Power",
             desc: "Develop strength and power in your legs and lower body.",
             tag: "30 MINS",
-
             exercises: [
                 {
                     id: "lbp-1",
@@ -273,7 +269,6 @@ exercises: [
             title: "HIIT Challenge",
             desc: "A high-intensity workout combining explosive cardio movements.",
             tag: "30 MINS",
-
             exercises: [
                 {
                     id: "hic-1",
@@ -313,7 +308,6 @@ exercises: [
             title: "Strength Circuit",
             desc: "A challenging circuit focused on full-body strength development.",
             tag: "30 MINS",
-
             exercises: [
                 {
                     id: "sc-1",
@@ -353,7 +347,6 @@ exercises: [
             title: "Athletic Conditioning",
             desc: "Advanced movements designed to improve endurance, speed and conditioning.",
             tag: "30 MINS",
-
             exercises: [
                 {
                     id: "ac-1",
@@ -399,7 +392,15 @@ export default function Workouts() {
 
     const navigate = useNavigate();
 
-    // Add selected workout to user's plan with caching and seamless navigation
+    // Helper to get today's local date string (YYYY-MM-DD)
+    const getTodayKey = () => {
+        const now = new Date();
+        const offset = now.getTimezoneOffset();
+        const localDate = new Date(now.getTime() - offset * 60000);
+        return localDate.toISOString().slice(0, 10);
+    };
+
+    // Add selected workout or resume active one without duplicating
     const handleAddWorkout = async (item) => {
         const user = auth.currentUser;
 
@@ -412,6 +413,30 @@ export default function Workouts() {
             setSavingWorkout(item.title);
             setMessage("");
 
+            const today = getTodayKey();
+
+            // Check if the user already has an active workout for today in Firestore
+            const workoutSnapshot = await getDocs(
+                collection(db, "users", user.uid, "workoutPlans")
+            );
+
+            let existingWorkoutId = null;
+
+            workoutSnapshot.docs.forEach((docSnap) => {
+                const data = docSnap.data();
+                // If the same workout exists, was active today, and is not yet completed, resume it
+                if (data.workoutName === item.title && data.lastActiveDate === today && !data.completed) {
+                    existingWorkoutId = docSnap.id;
+                }
+            });
+
+            // If an active workout for today already exists, navigate directly to it instead of creating a new one
+            if (existingWorkoutId) {
+                navigate(`/workouts/${existingWorkoutId}`);
+                return;
+            }
+
+            // Otherwise, create a new workout plan payload
             const workoutPayload = {
                 workoutName: item.title,
                 level: level,
@@ -420,10 +445,11 @@ export default function Workouts() {
                 exercises: item.exercises,
                 completedExercises: [],
                 completed: false,
+                lastActiveDate: today,
                 addedAt: serverTimestamp()
             };
 
-            // Save workout plan to Firestore
+            // Save new workout plan to Firestore
             const workoutRef = await addDoc(
                 collection(
                     db,
@@ -434,8 +460,9 @@ export default function Workouts() {
                 workoutPayload
             );
 
-            // Cache the active workout locally for instant retrieval in detail view
-            localStorage.setItem(`fitlife_cache_workout_${workoutRef.id}`, JSON.stringify({
+            // Cache the active workout locally with today's date key for instant retrieval
+            const cacheKey = `fitlife_cache_workout_${workoutRef.id}_${today}`;
+            localStorage.setItem(cacheKey, JSON.stringify({
                 id: workoutRef.id,
                 ...workoutPayload,
                 addedAt: new Date().toISOString()
